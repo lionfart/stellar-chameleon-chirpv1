@@ -3,6 +3,7 @@ import { InputHandler } from './InputHandler';
 import { Enemy } from './Enemy';
 import { AuraWeapon } from './AuraWeapon';
 import { ExperienceGem } from './ExperienceGem';
+import { ProjectileWeapon } from './ProjectileWeapon'; // Import new weapon
 import { clamp } from './utils';
 
 export class GameEngine {
@@ -16,6 +17,7 @@ export class GameEngine {
   private enemySpawnTimer: number;
   private enemySpawnInterval: number = 2;
   private auraWeapon: AuraWeapon;
+  private projectileWeapon: ProjectileWeapon; // New projectile weapon instance
   private gameOver: boolean = false;
   private isPaused: boolean = false;
   private onLevelUpCallback: () => void;
@@ -38,6 +40,7 @@ export class GameEngine {
     this.experienceGems = [];
     this.enemySpawnTimer = 0;
     this.auraWeapon = new AuraWeapon(10, 100, 0.5);
+    this.projectileWeapon = new ProjectileWeapon(15, 300, 1.5, 8, 3); // Initial projectile weapon stats
     this.onLevelUpCallback = onLevelUp;
   }
 
@@ -61,14 +64,20 @@ export class GameEngine {
 
   applyUpgrade(upgradeId: string) {
     switch (upgradeId) {
-      case 'damage':
-        this.auraWeapon.increaseDamage(5); // Increase aura damage by 5
+      case 'aura_damage':
+        this.auraWeapon.increaseDamage(5);
         break;
-      case 'speed':
-        this.player.increaseSpeed(20); // Increase player speed by 20
+      case 'player_speed':
+        this.player.increaseSpeed(20);
         break;
-      case 'health':
-        this.player.increaseMaxHealth(20); // Increase player max health by 20
+      case 'player_health':
+        this.player.increaseMaxHealth(20);
+        break;
+      case 'projectile_damage':
+        this.projectileWeapon.increaseDamage(10);
+        break;
+      case 'projectile_fire_rate':
+        this.projectileWeapon.decreaseFireRate(0.2); // Decrease interval, so increase fire rate
         break;
       default:
         console.warn(`Unknown upgrade ID: ${upgradeId}`);
@@ -135,6 +144,7 @@ export class GameEngine {
     });
 
     this.auraWeapon.update(deltaTime, this.player.x, this.player.y, this.enemies);
+    this.projectileWeapon.update(deltaTime, this.player.x, this.player.y, this.enemies); // Update projectile weapon
 
     const defeatedEnemies = this.enemies.filter(enemy => !enemy.isAlive());
     defeatedEnemies.forEach(enemy => {
@@ -172,6 +182,7 @@ export class GameEngine {
     );
 
     this.auraWeapon.draw(this.ctx, this.player.x, this.player.y, this.cameraX, this.cameraY);
+    this.projectileWeapon.draw(this.ctx, this.cameraX, this.cameraY); // Draw projectiles
 
     this.experienceGems.forEach(gem => gem.draw(this.ctx, this.cameraX, this.cameraY));
 

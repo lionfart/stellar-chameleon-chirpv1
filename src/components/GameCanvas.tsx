@@ -45,9 +45,11 @@ const GameCanvas: React.FC = () => {
   }, [handleLevelUp]);
 
   const levelUpOptions = [
-    { id: 'damage', name: 'Increase Aura Damage', description: 'Your aura deals more damage to enemies.' },
-    { id: 'speed', name: 'Increase Movement Speed', description: 'Move faster across the map.' },
-    { id: 'health', name: 'Increase Max Health', description: 'Gain more maximum health and heal to full.' },
+    { id: 'aura_damage', name: 'Increase Aura Damage', description: 'Your aura deals more damage to enemies.' },
+    { id: 'player_speed', name: 'Increase Movement Speed', description: 'Move faster across the map.' },
+    { id: 'player_health', name: 'Increase Max Health', description: 'Gain more maximum health and heal to full.' },
+    { id: 'projectile_damage', name: 'Increase Projectile Damage', description: 'Your projectiles deal more damage.' },
+    { id: 'projectile_fire_rate', name: 'Increase Projectile Fire Rate', description: 'Your projectiles fire more frequently.' },
   ];
 
   return (
