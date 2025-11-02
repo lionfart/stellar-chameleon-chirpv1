@@ -83,10 +83,8 @@ export class GameEngine {
 
     this.gameState = new GameState(player, vendor, this.worldWidth, this.worldHeight, initialWeapon);
     
-    // If shield ability is acquired, set it on the player
-    if (this.gameState.shieldAbility) {
-      this.gameState.player.setShieldAbility(this.gameState.shieldAbility);
-    }
+    // Removed redundant if (this.gameState.shieldAbility) block
+    // The player's shield ability is set when the shield is purchased.
 
     this.waveManager = new WaveManager(this.gameState, this.spriteManager, this.soundManager);
     this.powerUpManager = new PowerUpManager(this.gameState, this.spriteManager, this.soundManager);
@@ -249,9 +247,8 @@ export class GameEngine {
 
     this.gameState = new GameState(player, vendor, this.worldWidth, this.worldHeight, initialWeapon);
     
-    if (this.gameState.shieldAbility) {
-      this.gameState.player.setShieldAbility(this.gameState.shieldAbility);
-    }
+    // Removed redundant if (this.gameState.shieldAbility) block
+    // The player's shield ability is set when the shield is purchased.
 
     this.gameOverScreen.clearClickListener();
     this.lastTime = performance.now();
