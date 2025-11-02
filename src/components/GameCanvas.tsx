@@ -6,11 +6,32 @@ const GameCanvas: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameEngineRef = useRef<GameEngine | null>(null);
   const [showLevelUpScreen, setShowLevelUpScreen] = useState(false);
+  const [currentLevelUpOptions, setCurrentLevelUpOptions] = useState<{ id: string; name: string; description: string }[]>([]);
+
+  const allLevelUpOptions = [
+    { id: 'aura_damage', name: 'Increase Aura Damage', description: 'Your aura deals more damage to enemies.' },
+    { id: 'player_speed', name: 'Increase Movement Speed', description: 'Move faster across the map.' },
+    { id: 'player_health', name: 'Increase Max Health', description: 'Gain more maximum health and heal to full.' },
+    { id: 'projectile_damage', name: 'Increase Projectile Damage', description: 'Your projectiles deal more damage.' },
+    { id: 'projectile_fire_rate', name: 'Increase Projectile Fire Rate', description: 'Your projectiles fire more frequently.' },
+    { id: 'dash_cooldown', name: 'Reduce Dash Cooldown', description: 'Dash more often to evade enemies.' },
+    { id: 'blade_damage', name: 'Increase Blade Damage', description: 'Your spinning blades deal more damage.' },
+    { id: 'add_blade', name: 'Add Spinning Blade', description: 'Add another blade to orbit you, increasing coverage.' },
+    { id: 'explosion_damage', name: 'Increase Explosion Damage', description: 'Your explosion ability deals more damage.' },
+    { id: 'explosion_cooldown', name: 'Reduce Explosion Cooldown', description: 'Use your explosion ability more often.' },
+    { id: 'explosion_radius', name: 'Increase Explosion Radius', description: 'Your explosion ability affects a larger area.' },
+    { id: 'shield_health', name: 'Increase Shield Health', description: 'Your shield can absorb more damage.' },
+    { id: 'shield_regen', name: 'Increase Shield Regeneration', description: 'Your shield regenerates health faster when inactive.' },
+    { id: 'shield_cooldown', name: 'Reduce Shield Cooldown', description: 'Your shield becomes ready faster after breaking.' },
+  ];
 
   const handleLevelUp = useCallback(() => {
+    // Select 3 random unique options
+    const shuffled = [...allLevelUpOptions].sort(() => 0.5 - Math.random());
+    setCurrentLevelUpOptions(shuffled.slice(0, 3));
     setShowLevelUpScreen(true);
     gameEngineRef.current?.pause();
-  }, []);
+  }, [allLevelUpOptions]);
 
   const handleSelectUpgrade = useCallback((upgradeId: string) => {
     gameEngineRef.current?.applyUpgrade(upgradeId); // Apply the upgrade
@@ -44,28 +65,11 @@ const GameCanvas: React.FC = () => {
     };
   }, [handleLevelUp]);
 
-  const levelUpOptions = [
-    { id: 'aura_damage', name: 'Increase Aura Damage', description: 'Your aura deals more damage to enemies.' },
-    { id: 'player_speed', name: 'Increase Movement Speed', description: 'Move faster across the map.' },
-    { id: 'player_health', name: 'Increase Max Health', description: 'Gain more maximum health and heal to full.' },
-    { id: 'projectile_damage', name: 'Increase Projectile Damage', description: 'Your projectiles deal more damage.' },
-    { id: 'projectile_fire_rate', name: 'Increase Projectile Fire Rate', description: 'Your projectiles fire more frequently.' },
-    { id: 'dash_cooldown', name: 'Reduce Dash Cooldown', description: 'Dash more often to evade enemies.' },
-    { id: 'blade_damage', name: 'Increase Blade Damage', description: 'Your spinning blades deal more damage.' },
-    { id: 'add_blade', name: 'Add Spinning Blade', description: 'Add another blade to orbit you, increasing coverage.' },
-    { id: 'explosion_damage', name: 'Increase Explosion Damage', description: 'Your explosion ability deals more damage.' },
-    { id: 'explosion_cooldown', name: 'Reduce Explosion Cooldown', description: 'Use your explosion ability more often.' },
-    { id: 'explosion_radius', name: 'Increase Explosion Radius', description: 'Your explosion ability affects a larger area.' },
-    { id: 'shield_health', name: 'Increase Shield Health', description: 'Your shield can absorb more damage.' },
-    { id: 'shield_regen', name: 'Increase Shield Regeneration', description: 'Your shield regenerates health faster when inactive.' },
-    { id: 'shield_cooldown', name: 'Reduce Shield Cooldown', description: 'Your shield becomes ready faster after breaking.' },
-  ];
-
   return (
     <div className="relative w-full h-full overflow-hidden">
       <canvas ref={canvasRef} className="block bg-black" style={{ width: '100vw', height: '100vh' }} />
       {showLevelUpScreen && (
-        <LevelUpSelection onSelectUpgrade={handleSelectUpgrade} options={levelUpOptions} />
+        <LevelUpSelection onSelectUpgrade={handleSelectUpgrade} options={currentLevelUpOptions} />
       )}
     </div>
   );
