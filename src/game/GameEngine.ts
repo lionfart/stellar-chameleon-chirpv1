@@ -142,7 +142,12 @@ export class GameEngine {
     ];
     const initialWeapon = startingWeapons[Math.floor(Math.random() * startingWeapons.length)];
 
-    this.gameState = new GameState(player, vendor, this.worldWidth, this.worldHeight, initialWeapon);
+    // Initialize abilities with 'this' (GameEngine instance)
+    const initialExplosionAbility = new ExplosionAbility(50, 150, 5, this.soundManager, this);
+    const initialShieldAbility = new ShieldAbility(40, 100, 10, 10, this.soundManager, this);
+    const initialHealAbility = new HealAbility(30, 15, this.soundManager); // HealAbility doesn't need GameEngine for its draw
+
+    this.gameState = new GameState(player, vendor, this.worldWidth, this.worldHeight, initialWeapon, initialExplosionAbility, initialShieldAbility, initialHealAbility);
     
     this.waveManager = new WaveManager(this.gameState, this.spriteManager, this.soundManager);
     this.powerUpManager = new PowerUpManager(this.gameState, this.spriteManager, this.soundManager);
@@ -297,10 +302,10 @@ export class GameEngine {
           this.gameState.homingMissileWeapon = new HomingMissileWeapon(20, 250, 2, 12, 4, this.spriteManager.getSprite('homing_missile'), this.soundManager);
           break;
         case 'buy_explosion_ability':
-          this.gameState.explosionAbility = new ExplosionAbility(50, 150, 5, this.soundManager);
+          this.gameState.explosionAbility = new ExplosionAbility(50, 150, 5, this.soundManager, this); // Pass 'this'
           break;
         case 'buy_shield_ability':
-          this.gameState.shieldAbility = new ShieldAbility(40, 100, 10, 10, this.soundManager);
+          this.gameState.shieldAbility = new ShieldAbility(40, 100, 10, 10, this.soundManager, this); // Pass 'this'
           this.gameState.player.setShieldAbility(this.gameState.shieldAbility);
           break;
         case 'buy_heal_ability':
@@ -344,7 +349,12 @@ export class GameEngine {
     ];
     const initialWeapon = startingWeapons[Math.floor(Math.random() * startingWeapons.length)];
 
-    this.gameState = new GameState(player, vendor, this.worldWidth, this.worldHeight, initialWeapon);
+    // Re-initialize abilities with 'this' (GameEngine instance)
+    const initialExplosionAbility = new ExplosionAbility(50, 150, 5, this.soundManager, this);
+    const initialShieldAbility = new ShieldAbility(40, 100, 10, 10, this.soundManager, this);
+    const initialHealAbility = new HealAbility(30, 15, this.soundManager);
+
+    this.gameState = new GameState(player, vendor, this.worldWidth, this.worldHeight, initialWeapon, initialExplosionAbility, initialShieldAbility, initialHealAbility);
     
     this.waveManager = new WaveManager(this.gameState, this.spriteManager, this.soundManager);
     this.powerUpManager = new PowerUpManager(this.gameState, this.spriteManager, this.soundManager);
@@ -660,7 +670,7 @@ export class GameEngine {
     this.gameState.spinningBladeWeapon?.draw(this.ctx, this.cameraX, this.cameraY, this);
     this.gameState.homingMissileWeapon?.draw(this.ctx, this.cameraX, this.cameraY, this);
     this.gameState.explosionAbility?.draw(this.ctx, this.cameraX, this.cameraY);
-    this.gameState.shieldAbility?.draw(this.ctx, this.cameraX, this.cameraY);
+    this.gameState.shieldAbility?.draw(this.ctx, this.cameraX, this.cameraY, this); // Pass 'this'
 
     // Draw damage numbers (always on top)
     this.gameState.damageNumbers.forEach(dn => dn.draw(this.ctx, this.cameraX, this.cameraY, this));

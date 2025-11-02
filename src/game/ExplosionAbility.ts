@@ -1,6 +1,7 @@
 import { Explosion } from './Explosion';
 import { Enemy } from './Enemy';
 import { SoundManager } from './SoundManager'; // Import SoundManager
+import { GameEngine } from './GameEngine'; // Import GameEngine
 
 export class ExplosionAbility {
   explosions: Explosion[];
@@ -9,14 +10,16 @@ export class ExplosionAbility {
   private cooldown: number; // seconds
   private currentCooldown: number;
   private soundManager: SoundManager; // New: SoundManager instance
+  private gameEngine: GameEngine; // New: GameEngine instance
 
-  constructor(baseDamage: number, radius: number, cooldown: number, soundManager: SoundManager) {
+  constructor(baseDamage: number, radius: number, cooldown: number, soundManager: SoundManager, gameEngine: GameEngine) {
     this.explosions = [];
     this.baseDamage = baseDamage;
     this.radius = radius;
     this.cooldown = cooldown;
     this.currentCooldown = 0;
     this.soundManager = soundManager; // Assign SoundManager
+    this.gameEngine = gameEngine; // Assign GameEngine
   }
 
   update(deltaTime: number, enemies: Enemy[]) {
@@ -32,13 +35,13 @@ export class ExplosionAbility {
 
   draw(ctx: CanvasRenderingContext2D, cameraX: number, cameraY: number) {
     this.explosions.forEach(explosion => {
-      explosion.draw(ctx, cameraX, cameraY);
+      explosion.draw(ctx, cameraX, cameraY, this.gameEngine); // Pass gameEngine to explosion draw
     });
   }
 
   triggerExplosion(playerX: number, playerY: number): boolean {
     if (this.currentCooldown <= 0) {
-      this.explosions.push(new Explosion(playerX, playerY, this.radius, this.baseDamage));
+      this.explosions.push(new Explosion(playerX, playerY, this.radius, this.baseDamage, this.gameEngine)); // Pass gameEngine
       this.currentCooldown = this.cooldown;
       this.soundManager.playSound('explosion'); // Play explosion sound
       console.log("Explosion triggered!");
