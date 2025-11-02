@@ -12,7 +12,7 @@ export class Player {
   experience: number;
   level: number;
   experienceToNextLevel: number;
-  private onLevelUpCallback: () => void; // New callback property
+  private onLevelUpCallback: () => void;
 
   constructor(x: number, y: number, size: number, speed: number, color: string, maxHealth: number, onLevelUp: () => void) {
     this.x = x;
@@ -24,12 +24,12 @@ export class Player {
     this.currentHealth = maxHealth;
     this.experience = 0;
     this.level = 1;
-    this.experienceToNextLevel = 100; // Initial experience needed for level 2
-    this.onLevelUpCallback = onLevelUp; // Assign the callback
+    this.experienceToNextLevel = 100;
+    this.onLevelUpCallback = onLevelUp;
   }
 
   update(input: InputHandler, deltaTime: number, worldWidth: number, worldHeight: number) {
-    if (!this.isAlive()) return; // Don't update if dead
+    if (!this.isAlive()) return;
 
     const moveAmount = this.speed * deltaTime;
 
@@ -46,7 +46,6 @@ export class Player {
       this.x += moveAmount;
     }
 
-    // Keep player within world bounds
     this.x = clamp(this.x, this.size / 2, worldWidth - this.size / 2);
     this.y = clamp(this.y, this.size / 2, worldHeight - this.size / 2);
   }
@@ -57,7 +56,6 @@ export class Player {
     ctx.arc(this.x - cameraX, this.y - cameraY, this.size / 2, 0, Math.PI * 2);
     ctx.fill();
 
-    // Draw health bar (simple rectangle above player)
     const healthBarWidth = this.size * 1.5;
     const healthBarHeight = 5;
     const healthPercentage = this.currentHealth / this.maxHealth;
@@ -80,7 +78,6 @@ export class Player {
     return this.currentHealth > 0;
   }
 
-  // Basic collision check with another circle (e.g., enemy)
   collidesWith(other: { x: number; y: number; size: number }): boolean {
     const dx = this.x - other.x;
     const dy = this.y - other.y;
@@ -97,12 +94,19 @@ export class Player {
 
   levelUp() {
     this.level++;
-    this.experience -= this.experienceToNextLevel; // Carry over excess experience
-    this.experienceToNextLevel = Math.floor(this.experienceToNextLevel * 1.5); // Increase XP needed for next level
-    this.maxHealth += 10; // Example: increase max health on level up
-    this.currentHealth = this.maxHealth; // Heal to full
-    this.speed += 10; // Example: increase speed
-    console.log(`Player leveled up to Level ${this.level}!`);
+    this.experience -= this.experienceToNextLevel;
+    this.experienceToNextLevel = Math.floor(this.experienceToNextLevel * 1.5);
     this.onLevelUpCallback(); // Trigger the callback to show the level-up screen
+  }
+
+  increaseSpeed(amount: number) {
+    this.speed += amount;
+    console.log(`Player speed increased to ${this.speed}`);
+  }
+
+  increaseMaxHealth(amount: number) {
+    this.maxHealth += amount;
+    this.currentHealth = this.maxHealth; // Heal to full on health upgrade
+    console.log(`Player max health increased to ${this.maxHealth}`);
   }
 }

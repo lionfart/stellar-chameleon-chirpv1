@@ -24,7 +24,7 @@ export class AuraWeapon {
         const dy = playerY - enemy.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
 
-        if (distance < this.radius + enemy.size / 2) { // Check if enemy is within aura radius
+        if (distance < this.radius + enemy.size / 2) {
           enemy.takeDamage(this.damage);
         }
       }
@@ -32,11 +32,15 @@ export class AuraWeapon {
   }
 
   draw(ctx: CanvasRenderingContext2D, playerX: number, playerY: number, cameraX: number, cameraY: number) {
-    // Draw the aura visually (optional, for debugging/visual feedback)
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)'; // Semi-transparent white
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.arc(playerX - cameraX, playerY - cameraY, this.radius, 0, Math.PI * 2);
     ctx.stroke();
+  }
+
+  increaseDamage(amount: number) {
+    this.damage += amount;
+    console.log(`Aura weapon damage increased to ${this.damage}`);
   }
 }

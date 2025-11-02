@@ -17,8 +17,8 @@ export class GameEngine {
   private enemySpawnInterval: number = 2;
   private auraWeapon: AuraWeapon;
   private gameOver: boolean = false;
-  private isPaused: boolean = false; // New state for pausing
-  private onLevelUpCallback: () => void; // Callback for when player levels up
+  private isPaused: boolean = false;
+  private onLevelUpCallback: () => void;
 
   // World dimensions
   private worldWidth: number = 2000;
@@ -31,21 +31,20 @@ export class GameEngine {
   constructor(ctx: CanvasRenderingContext2D, onLevelUp: () => void) {
     this.ctx = ctx;
     this.inputHandler = new InputHandler();
-    this.player = new Player(this.worldWidth / 2, this.worldHeight / 2, 30, 200, 'blue', 100, this.triggerLevelUp); // Pass triggerLevelUp to player
+    this.player = new Player(this.worldWidth / 2, this.worldHeight / 2, 30, 200, 'blue', 100, this.triggerLevelUp);
     this.lastTime = 0;
     this.animationFrameId = null;
     this.enemies = [];
     this.experienceGems = [];
     this.enemySpawnTimer = 0;
     this.auraWeapon = new AuraWeapon(10, 100, 0.5);
-    this.onLevelUpCallback = onLevelUp; // Store the callback
+    this.onLevelUpCallback = onLevelUp;
   }
 
   init() {
     this.gameLoop(0);
   }
 
-  // Method to trigger the level-up UI
   private triggerLevelUp = () => {
     this.onLevelUpCallback();
   };
@@ -56,8 +55,24 @@ export class GameEngine {
 
   resume() {
     this.isPaused = false;
-    this.lastTime = performance.now(); // Reset lastTime to prevent large deltaTime after pause
-    this.gameLoop(this.lastTime); // Restart the loop if it was stopped
+    this.lastTime = performance.now();
+    this.gameLoop(this.lastTime);
+  }
+
+  applyUpgrade(upgradeId: string) {
+    switch (upgradeId) {
+      case 'damage':
+        this.auraWeapon.increaseDamage(5); // Increase aura damage by 5
+        break;
+      case 'speed':
+        this.player.increaseSpeed(20); // Increase player speed by 20
+        break;
+      case 'health':
+        this.player.increaseMaxHealth(20); // Increase player max health by 20
+        break;
+      default:
+        console.warn(`Unknown upgrade ID: ${upgradeId}`);
+    }
   }
 
   private spawnEnemy() {
@@ -95,7 +110,7 @@ export class GameEngine {
   }
 
   private update(deltaTime: number) {
-    if (this.gameOver || this.isPaused) return; // Don't update if game is over or paused
+    if (this.gameOver || this.isPaused) return;
 
     this.player.update(this.inputHandler, deltaTime, this.worldWidth, this.worldHeight);
 
@@ -186,7 +201,7 @@ export class GameEngine {
 
   private gameLoop = (currentTime: number) => {
     if (this.isPaused) {
-      this.animationFrameId = requestAnimationFrame(this.gameLoop); // Keep requesting frame even if paused to check for resume
+      this.animationFrameId = requestAnimationFrame(this.gameLoop);
       return;
     }
 

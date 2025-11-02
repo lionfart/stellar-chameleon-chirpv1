@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { GameEngine } from '@/game/GameEngine';
-import LevelUpSelection from './LevelUpSelection'; // Import the new component
+import LevelUpSelection from './LevelUpSelection';
 
 const GameCanvas: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -13,9 +13,7 @@ const GameCanvas: React.FC = () => {
   }, []);
 
   const handleSelectUpgrade = useCallback((upgradeId: string) => {
-    console.log(`Selected upgrade: ${upgradeId}`);
-    // Here you would apply the upgrade to the player/game state
-    // For now, we just close the screen and resume
+    gameEngineRef.current?.applyUpgrade(upgradeId); // Apply the upgrade
     setShowLevelUpScreen(false);
     gameEngineRef.current?.resume();
   }, []);
@@ -30,13 +28,12 @@ const GameCanvas: React.FC = () => {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    gameEngineRef.current = new GameEngine(ctx, handleLevelUp); // Pass the callback
+    gameEngineRef.current = new GameEngine(ctx, handleLevelUp);
     gameEngineRef.current.init();
 
     const handleResize = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
-      // Re-initialize or update game engine with new dimensions if needed
     };
 
     window.addEventListener('resize', handleResize);
@@ -48,9 +45,9 @@ const GameCanvas: React.FC = () => {
   }, [handleLevelUp]);
 
   const levelUpOptions = [
-    { id: 'damage', name: 'Increase Damage', description: 'Your aura deals more damage.' },
-    { id: 'speed', name: 'Increase Speed', description: 'Move faster across the map.' },
-    { id: 'health', name: 'Increase Max Health', description: 'Gain more maximum health.' },
+    { id: 'damage', name: 'Increase Aura Damage', description: 'Your aura deals more damage to enemies.' },
+    { id: 'speed', name: 'Increase Movement Speed', description: 'Move faster across the map.' },
+    { id: 'health', name: 'Increase Max Health', description: 'Gain more maximum health and heal to full.' },
   ];
 
   return (
