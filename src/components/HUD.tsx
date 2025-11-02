@@ -53,12 +53,12 @@ const HUD: React.FC<HUDProps> = ({
   return (
     <div className="absolute top-4 left-4 right-4 flex justify-between items-start pointer-events-none z-40">
       {/* Left HUD - Player Stats */}
-      <Card className="bg-background/80 backdrop-blur-sm p-3 shadow-lg border border-solid border-primary/20 min-w-[250px] max-h-[calc(50vh-2rem)] overflow-y-auto">
+      <Card className="bg-background/90 backdrop-blur-md p-3 shadow-xl border border-solid border-primary/20 min-w-[250px] max-h-[calc(50vh-2rem)] overflow-y-auto">
         <CardContent className="p-0 space-y-2">
           <div className="flex items-center space-x-2">
             <Heart className="h-5 w-5 text-red-500" />
             <div className="flex-1">
-              <Progress value={healthPercentage} className="h-3" indicatorClassName="bg-red-500" /> {/* Increased height to h-3 */}
+              <Progress value={healthPercentage} className="h-3" indicatorClassName="bg-red-500" />
               <span className="text-xs text-muted-foreground">{playerHealth}/{playerMaxHealth} HP</span>
             </div>
           </div>
@@ -66,7 +66,7 @@ const HUD: React.FC<HUDProps> = ({
           <div className="flex items-center space-x-2">
             <Zap className="h-5 w-5 text-blue-500" />
             <div className="flex-1">
-              <Progress value={xpPercentage} className="h-3" indicatorClassName="bg-blue-500" /> {/* Increased height to h-3 */}
+              <Progress value={xpPercentage} className="h-3" indicatorClassName="bg-blue-500" />
               <span className="text-xs text-muted-foreground">{playerExperience}/{playerExperienceToNextLevel} XP</span>
             </div>
             <Badge variant="secondary" className="text-sm">Lv. {playerLevel}</Badge>
@@ -81,7 +81,7 @@ const HUD: React.FC<HUDProps> = ({
             <div className="flex items-center space-x-2">
               <Shield className={`h-5 w-5 ${shieldActive ? 'text-cyan-400' : 'text-gray-500'}`} />
               <div className="flex-1">
-                <Progress value={shieldPercentage} className="h-3" indicatorClassName="bg-cyan-400" /> {/* Increased height to h-3 */}
+                <Progress value={shieldPercentage} className="h-3" indicatorClassName="bg-cyan-400" />
                 <span className="text-xs text-muted-foreground">
                   {shieldActive ? `${shieldCurrentHealth}/${shieldMaxHealth} Shield` : 'Shield Inactive'}
                 </span>
@@ -92,7 +92,7 @@ const HUD: React.FC<HUDProps> = ({
       </Card>
 
       {/* Bottom-Center HUD - Ability Cooldowns */}
-      <Card className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-background/80 backdrop-blur-sm p-3 shadow-lg border border-solid border-primary/20 max-w-sm w-full md:w-auto max-h-[calc(50vh-2rem)] overflow-y-auto">
+      <Card className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-background/90 backdrop-blur-md p-3 shadow-xl border border-solid border-primary/20 max-w-sm w-full md:w-auto max-h-[calc(50vh-2rem)] overflow-y-auto">
         <CardContent className="p-0 space-y-2">
           <CooldownDisplay
             Icon={Footprints}
@@ -125,7 +125,7 @@ const HUD: React.FC<HUDProps> = ({
       </Card>
 
       {/* Right HUD - Wave Info */}
-      <Card className="bg-background/80 backdrop-blur-sm p-3 shadow-lg border border-solid border-primary/20 min-w-[180px] text-right">
+      <Card className="bg-background/90 backdrop-blur-md p-3 shadow-xl border border-solid border-primary/20 min-w-[180px] text-right">
         <CardContent className="p-0 space-y-2">
           <div className="flex items-center justify-end space-x-2">
             <Swords className="h-5 w-5 text-purple-500" />
