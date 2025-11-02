@@ -2,7 +2,8 @@ import { GameState } from './GameState';
 import { SpriteManager } from './SpriteManager';
 import { SoundManager } from './SoundManager';
 import { Enemy } from './Enemy';
-import { ShooterEnemy } from './ShooterEnemy'; // Import ShooterEnemy
+import { ShooterEnemy } from './ShooterEnemy';
+import { Boss } from './Boss'; // Import Boss
 import { clamp } from './utils';
 
 export class WaveManager {
@@ -11,6 +12,7 @@ export class WaveManager {
   private soundManager: SoundManager;
   private enemySpawnTimer: number;
   private waveDuration: number = 60; // seconds per wave
+  private bossWaveInterval: number = 5; // Spawn a boss every 5 waves
 
   constructor(gameState: GameState, spriteManager: SpriteManager, soundManager: SoundManager) {
     this.gameState = gameState;
@@ -20,12 +22,22 @@ export class WaveManager {
   }
 
   update(deltaTime: number, cameraX: number, cameraY: number, canvasWidth: number, canvasHeight: number) {
+    // If a boss is active, don't spawn regular enemies
+    if (this.gameState.currentBoss && this.gameState.currentBoss.isAlive()) {
+      return;
+    }
+
     this.gameState.waveTimeElapsed += deltaTime;
     if (this.gameState.waveTimeElapsed >= this.waveDuration) {
       this.gameState.waveNumber++;
       this.gameState.waveTimeElapsed = 0;
       this.gameState.enemySpawnInterval = Math.max(0.5, this.gameState.enemySpawnInterval * 0.9); // Decrease spawn interval by 10% each wave, min 0.5s
       console.log(`Advancing to Wave ${this.gameState.waveNumber}! New spawn interval: ${this.gameState.enemySpawnInterval.toFixed(2)}s`);
+
+      // Check if it's a boss wave
+      if (this.gameState.waveNumber % this.bossWaveInterval === 0) {
+        this.spawnBoss(cameraX, cameraY, canvasWidth, canvasHeight);
+      }
     }
 
     this.enemySpawnTimer += deltaTime;
@@ -101,7 +113,32 @@ export class WaveManager {
     }
   }
 
+  private spawnBoss(cameraX: number, cameraY: number, canvasWidth: number, canvasHeight: number) {
+    // Clear existing enemies before spawning boss
+    this.gameState.enemies = [];
+
+    const bossSize = 80;
+    const bossHealth = 500 + (this.gameState.waveNumber / this.bossWaveInterval - 1) * 200; // Scale boss health
+    const bossSpeed = 80;
+    const bossGold = 100;
+    const bossSprite = this.spriteManager.getSprite('boss');
+    const bossName = `Wave ${this.gameState.waveNumber} Boss`;
+
+    // Spawn boss near the center of the visible screen, but within world bounds
+    const spawnX = clamp(cameraX + canvasWidth / 2, bossSize / 2, this.gameState.worldWidth - bossSize / 2);
+    const spawnY = clamp(cameraY + canvasHeight / 2, bossSize / 2, this.gameState.worldHeight - bossSize / 2);
+
+    this.gameState.currentBoss = new Boss(
+      spawnX, spawnY, bossSize, bossSpeed, 'red', bossHealth,
+      bossSprite, this.soundManager, bossGold, this.gameState.damageNumbers.push.bind(this.gameState.damageNumbers),
+      bossName
+    );
+    this.gameState.enemies.push(this.gameState.currentBoss); // Add boss to enemies array for general handling
+    console.log(`BOSS SPAWNED: ${bossName} with ${bossHealth} HP!`);
+  }
+
   reset() {
     this.enemySpawnTimer = 0;
+    this.gameState.currentBoss = undefined; // Clear boss on reset
   }
 }

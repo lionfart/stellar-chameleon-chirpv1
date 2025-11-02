@@ -244,4 +244,22 @@ export class SpriteManager {
       </svg>
     `;
   }
+
+  static getBossSpriteSVG(size: number): string {
+    return `
+      <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="bossGradient" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+            <stop offset="0%" stop-color="#FF0000" />
+            <stop offset="100%" stop-color="#8B0000" />
+          </radialGradient>
+        </defs>
+        <path d="M${size / 2},0 L${size},${size / 2} L${size / 2},${size} L0,${size / 2} Z" fill="url(#bossGradient)" stroke="#4B0000" stroke-width="3"/>
+        <circle cx="${size * 0.3}" cy="${size * 0.3}" r="${size * 0.1}" fill="#FFFFFF"/>
+        <circle cx="${size * 0.7}" cy="${size * 0.3}" r="${size * 0.1}" fill="#FFFFFF"/>
+        <path d="M${size * 0.3},${size * 0.7} Q${size / 2},${size * 0.8} ${size * 0.7},${size * 0.7}" stroke="#FFFFFF" stroke-width="2" fill="none"/>
+        <rect x="${size * 0.45}" y="${size * 0.1}" width="${size * 0.1}" height="${size * 0.2}" fill="#FFEB3B"/>
+      </svg>
+    `;
+  }
 }

@@ -5,62 +5,64 @@ import { MagnetPowerUp } from './MagnetPowerUp';
 import { AuraWeapon } from './AuraWeapon';
 import { ProjectileWeapon } from './ProjectileWeapon';
 import { SpinningBladeWeapon } from './SpinningBladeWeapon';
-import { HomingMissileWeapon } from './HomingMissileWeapon'; // New: Homing Missile Weapon
+import { HomingMissileWeapon } from './HomingMissileWeapon';
 import { ExplosionAbility } from './ExplosionAbility';
 import { ShieldAbility } from './ShieldAbility';
-import { Vendor } from './Vendor'; // Import Vendor
-import { DamageNumber } from './DamageNumber'; // Import DamageNumber
-import { HealAbility } from './HealAbility'; // Import HealAbility
+import { Vendor } from './Vendor';
+import { DamageNumber } from './DamageNumber';
+import { HealAbility } from './HealAbility';
+import { Boss } from './Boss'; // Import Boss
 
 export class GameState {
   player: Player;
   enemies: Enemy[];
   experienceGems: ExperienceGem[];
   magnetPowerUps: MagnetPowerUp[];
-  auraWeapon: AuraWeapon | undefined; // Made optional
-  projectileWeapon: ProjectileWeapon | undefined; // Made optional
-  spinningBladeWeapon: SpinningBladeWeapon | undefined; // Made optional
-  homingMissileWeapon: HomingMissileWeapon | undefined; // New: Homing Missile Weapon
-  explosionAbility: ExplosionAbility | undefined; // Made optional
-  shieldAbility: ShieldAbility | undefined; // Made optional
-  healAbility: HealAbility | undefined; // New: Heal ability
-  vendor: Vendor; // New: Vendor NPC
-  damageNumbers: DamageNumber[]; // New: Array to hold active damage numbers
+  auraWeapon: AuraWeapon | undefined;
+  projectileWeapon: ProjectileWeapon | undefined;
+  spinningBladeWeapon: SpinningBladeWeapon | undefined;
+  homingMissileWeapon: HomingMissileWeapon | undefined;
+  explosionAbility: ExplosionAbility | undefined;
+  shieldAbility: ShieldAbility | undefined;
+  healAbility: HealAbility | undefined;
+  vendor: Vendor;
+  damageNumbers: DamageNumber[];
+  currentBoss: Boss | undefined; // New: Current active boss
 
   worldWidth: number;
   worldHeight: number;
   waveNumber: number;
   waveTimeElapsed: number;
-  enemySpawnInterval: number; // Moved from GameEngine
-  waveDuration: number; // Added for HUD access
+  enemySpawnInterval: number;
+  waveDuration: number;
   
   gameOver: boolean;
   isPaused: boolean;
-  showShop: boolean; // New: State to control shop visibility
+  showShop: boolean;
 
   activeMagnetRadius: number;
   activeMagnetDuration: number;
 
   constructor(
     player: Player,
-    vendor: Vendor, // Vendor is always present
+    vendor: Vendor,
     worldWidth: number,
     worldHeight: number,
-    initialWeapon?: AuraWeapon | ProjectileWeapon | SpinningBladeWeapon | HomingMissileWeapon, // Optional initial weapon
-    initialExplosionAbility?: ExplosionAbility, // Optional initial ability
-    initialShieldAbility?: ShieldAbility, // Optional initial ability
-    initialHealAbility?: HealAbility // Optional initial heal ability
+    initialWeapon?: AuraWeapon | ProjectileWeapon | SpinningBladeWeapon | HomingMissileWeapon,
+    initialExplosionAbility?: ExplosionAbility,
+    initialShieldAbility?: ShieldAbility,
+    initialHealAbility?: HealAbility
   ) {
     this.player = player;
-    this.vendor = vendor; // Assign vendor
+    this.vendor = vendor;
 
     this.auraWeapon = undefined;
     this.projectileWeapon = undefined;
     this.spinningBladeWeapon = undefined;
-    this.homingMissileWeapon = undefined; // Initialize new weapon
+    this.homingMissileWeapon = undefined;
     this.explosionAbility = undefined;
     this.shieldAbility = undefined;
-    this.healAbility = initialHealAbility; // Assign heal ability
+    this.healAbility = initialHealAbility;
 
     if (initialWeapon instanceof AuraWeapon) {
       this.auraWeapon = initialWeapon;
@@ -68,7 +70,7 @@ export class GameState {
       this.projectileWeapon = initialWeapon;
     } else if (initialWeapon instanceof SpinningBladeWeapon) {
       this.spinningBladeWeapon = initialWeapon;
-    } else if (initialWeapon instanceof HomingMissileWeapon) { // Handle new weapon
+    } else if (initialWeapon instanceof HomingMissileWeapon) {
       this.homingMissileWeapon = initialWeapon;
     }
 
@@ -78,18 +80,19 @@ export class GameState {
     this.enemies = [];
     this.experienceGems = [];
     this.magnetPowerUps = [];
-    this.damageNumbers = []; // Initialize damage numbers array
+    this.damageNumbers = [];
+    this.currentBoss = undefined; // Initialize currentBoss
 
     this.worldWidth = worldWidth;
     this.worldHeight = worldHeight;
     this.waveNumber = 1;
     this.waveTimeElapsed = 0;
-    this.enemySpawnInterval = 2; // Initial value
-    this.waveDuration = 60; // Initial value for wave duration
+    this.enemySpawnInterval = 2;
+    this.waveDuration = 60;
 
     this.gameOver = false;
     this.isPaused = false;
-    this.showShop = false; // Initialize shop as not visible
+    this.showShop = false;
 
     this.activeMagnetRadius = 0;
     this.activeMagnetDuration = 0;
@@ -99,23 +102,23 @@ export class GameState {
     this.enemies = [];
     this.experienceGems = [];
     this.magnetPowerUps = [];
-    this.damageNumbers = []; // Reset damage numbers
+    this.damageNumbers = [];
+    this.currentBoss = undefined; // Reset currentBoss
     this.waveNumber = 1;
     this.waveTimeElapsed = 0;
     this.enemySpawnInterval = 2;
-    this.waveDuration = 60; // Reset wave duration
+    this.waveDuration = 60;
     this.gameOver = false;
     this.isPaused = false;
-    this.showShop = false; // Reset shop visibility
+    this.showShop = false;
     this.activeMagnetRadius = 0;
     this.activeMagnetDuration = 0;
-    // Explicitly clear weapon and ability references on reset
     this.auraWeapon = undefined;
     this.projectileWeapon = undefined;
     this.spinningBladeWeapon = undefined;
-    this.homingMissileWeapon = undefined; // Reset new weapon
+    this.homingMissileWeapon = undefined;
     this.explosionAbility = undefined;
     this.shieldAbility = undefined;
-    this.healAbility = undefined; // Reset heal ability
+    this.healAbility = undefined;
   }
 }

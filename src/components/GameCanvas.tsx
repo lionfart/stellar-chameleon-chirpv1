@@ -86,8 +86,13 @@ const GameCanvas: React.FC = () => {
     explosionCooldownMax: 0,
     shieldCooldownCurrent: 0,
     shieldCooldownMax: 0,
-    healCooldownCurrent: 0, // New: Heal cooldown
-    healCooldownMax: 0, // New: Heal max cooldown
+    healCooldownCurrent: 0,
+    healCooldownMax: 0,
+    // Boss specific data
+    bossActive: false,
+    bossHealth: 0,
+    bossMaxHealth: 0,
+    bossName: '',
     // Minimap specific initial data
     playerX: 0,
     playerY: 0,

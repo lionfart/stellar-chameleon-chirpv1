@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/Progress';
 import { Badge } from '@/components/ui/badge';
-import { Heart, Zap, Shield, Gem, Clock, Swords, Bomb, Footprints, PlusCircle } from 'lucide-react'; // Import PlusCircle for heal ability
+import { Heart, Zap, Shield, Gem, Clock, Swords, Bomb, Footprints, PlusCircle } from 'lucide-react';
 import CooldownDisplay from './CooldownDisplay';
 
 export interface HUDProps {
@@ -24,8 +24,14 @@ export interface HUDProps {
   explosionCooldownMax: number;
   shieldCooldownCurrent: number;
   shieldCooldownMax: number;
-  healCooldownCurrent: number; // New: Heal ability cooldown
-  healCooldownMax: number; // New: Heal ability max cooldown
+  healCooldownCurrent: number;
+  healCooldownMax: number;
+
+  // Boss specific data
+  bossActive: boolean;
+  bossHealth: number;
+  bossMaxHealth: number;
+  bossName: string;
 }
 
 const HUD: React.FC<HUDProps> = ({
@@ -47,12 +53,18 @@ const HUD: React.FC<HUDProps> = ({
   explosionCooldownMax,
   shieldCooldownCurrent,
   shieldCooldownMax,
-  healCooldownCurrent, // New: Heal cooldown
-  healCooldownMax, // New: Heal max cooldown
+  healCooldownCurrent,
+  healCooldownMax,
+  // Boss specific data
+  bossActive,
+  bossHealth,
+  bossMaxHealth,
+  bossName,
 }) => {
   const healthPercentage = (playerHealth / playerMaxHealth) * 100;
   const xpPercentage = (playerExperience / playerExperienceToNextLevel) * 100;
   const shieldPercentage = shieldMaxHealth > 0 ? (shieldCurrentHealth / shieldMaxHealth) * 100 : 0;
+  const bossHealthPercentage = bossMaxHealth > 0 ? (bossHealth / bossMaxHealth) * 100 : 0;
 
   return (
     <>
@@ -106,8 +118,8 @@ const HUD: React.FC<HUDProps> = ({
               currentCooldown={dashCooldownCurrent}
               maxCooldown={dashCooldownMax}
               colorClass="text-purple-500 drop-shadow-sm"
-              iconSizeClass="h-4 w-4" // Dash ikonu küçültüldü
-              progressBarHeightClass="h-4" // Dash ilerleme çubuğu küçültüldü
+              iconSizeClass="h-4 w-4"
+              progressBarHeightClass="h-4"
             />
 
             {explosionCooldownMax > 0 && (
@@ -130,7 +142,7 @@ const HUD: React.FC<HUDProps> = ({
               />
             )}
 
-            {healCooldownMax > 0 && ( // New: Heal ability cooldown display
+            {healCooldownMax > 0 && (
               <CooldownDisplay
                 Icon={PlusCircle}
                 name="Heal"
@@ -158,6 +170,19 @@ const HUD: React.FC<HUDProps> = ({
           </CardContent>
         </Card>
       </div>
+
+      {/* Top-Right HUD - Boss Health Bar */}
+      {bossActive && (
+        <div className="absolute top-4 right-4 w-1/3 pointer-events-none z-40">
+          <Card className="bg-background/90 backdrop-blur-md p-3 shadow-xl border border-solid border-red-500/50 text-center">
+            <CardContent className="p-0 space-y-2">
+              <h3 className="text-lg font-bold text-red-500">{bossName}</h3>
+              <Progress value={bossHealthPercentage} className="h-4" indicatorClassName="bg-red-600" />
+              <span className="text-sm text-muted-foreground">{bossHealth}/{bossMaxHealth} HP</span>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </>
   );
 };
