@@ -1,8 +1,8 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Progress } from '@/components/Progress'; // Changed import path to custom Progress component
+import { Progress } from '@/components/Progress';
 import { Badge } from '@/components/ui/badge';
-import { Heart, Zap, Shield, Gem, Clock, Swords, Bomb } from 'lucide-react'; // Icons, added Bomb
+import { Heart, Zap, Shield, Gem, Clock, Swords, Bomb } from 'lucide-react';
 
 export interface HUDProps {
   playerHealth: number;
@@ -60,7 +60,7 @@ const HUD: React.FC<HUDProps> = ({
   return (
     <div className="absolute top-4 left-4 right-4 flex justify-between items-start pointer-events-none z-40">
       {/* Left HUD - Player Stats */}
-      <Card className="bg-background/80 backdrop-blur-sm p-3 shadow-lg border-none min-w-[250px]">
+      <Card className="bg-background/80 backdrop-blur-sm p-3 shadow-lg border-none min-w-[250px] max-h-[calc(50vh-2rem)] overflow-y-auto">
         <CardContent className="p-0 space-y-2">
           <div className="flex items-center space-x-2">
             <Heart className="h-5 w-5 text-red-500" />
@@ -99,10 +99,10 @@ const HUD: React.FC<HUDProps> = ({
       </Card>
 
       {/* Bottom-Left HUD - Ability Cooldowns */}
-      <Card className="absolute bottom-4 left-4 bg-background/80 backdrop-blur-sm p-3 shadow-lg border-none min-w-[200px]">
+      <Card className="absolute bottom-4 left-4 bg-background/80 backdrop-blur-sm p-3 shadow-lg border-none min-w-[200px] max-h-[calc(50vh-2rem)] overflow-y-auto">
         <CardContent className="p-0 space-y-2">
           <div className="flex items-center space-x-2">
-            <Zap className="h-5 w-5 text-purple-500" /> {/* Using Zap for Dash */}
+            <Zap className="h-5 w-5 text-purple-500" />
             <div className="flex-1">
               <Progress
                 value={dashCooldownPercentage}
@@ -112,7 +112,6 @@ const HUD: React.FC<HUDProps> = ({
                 text={`Dash: ${getCooldownText(dashCooldownCurrent)}`}
                 isCooldown={dashCooldownCurrent > 0}
               />
-              {/* Removed redundant span */}
             </div>
           </div>
 
@@ -128,7 +127,6 @@ const HUD: React.FC<HUDProps> = ({
                   text={`Explosion: ${getCooldownText(explosionCooldownCurrent)}`}
                   isCooldown={explosionCooldownCurrent > 0}
                 />
-                {/* Removed redundant span */}
               </div>
             </div>
           )}
@@ -145,7 +143,6 @@ const HUD: React.FC<HUDProps> = ({
                   text={`Shield: ${getCooldownText(shieldCooldownCurrent)}`}
                   isCooldown={shieldCooldownCurrent > 0}
                 />
-                {/* Removed redundant span */}
               </div>
             </div>
           )}
