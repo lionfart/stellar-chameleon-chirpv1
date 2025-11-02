@@ -9,6 +9,9 @@ export class Player {
   color: string;
   maxHealth: number;
   currentHealth: number;
+  experience: number;
+  level: number;
+  experienceToNextLevel: number;
 
   constructor(x: number, y: number, size: number, speed: number, color: string, maxHealth: number) {
     this.x = x;
@@ -18,6 +21,9 @@ export class Player {
     this.color = color;
     this.maxHealth = maxHealth;
     this.currentHealth = maxHealth;
+    this.experience = 0;
+    this.level = 1;
+    this.experienceToNextLevel = 100; // Initial experience needed for level 2
   }
 
   update(input: InputHandler, deltaTime: number, worldWidth: number, worldHeight: number) {
@@ -78,5 +84,22 @@ export class Player {
     const dy = this.y - other.y;
     const distance = Math.sqrt(dx * dx + dy * dy);
     return distance < (this.size / 2 + other.size / 2);
+  }
+
+  gainExperience(amount: number) {
+    this.experience += amount;
+    if (this.experience >= this.experienceToNextLevel) {
+      this.levelUp();
+    }
+  }
+
+  levelUp() {
+    this.level++;
+    this.experience -= this.experienceToNextLevel; // Carry over excess experience
+    this.experienceToNextLevel = Math.floor(this.experienceToNextLevel * 1.5); // Increase XP needed for next level
+    this.maxHealth += 10; // Example: increase max health on level up
+    this.currentHealth = this.maxHealth; // Heal to full
+    this.speed += 10; // Example: increase speed
+    console.log(`Player leveled up to Level ${this.level}!`);
   }
 }
