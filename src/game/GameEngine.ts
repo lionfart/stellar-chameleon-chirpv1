@@ -180,7 +180,15 @@ export class GameEngine {
     this.spriteManager.loadSprite('magnet_powerup', SpriteManager.getMagnetPowerUpSpriteSVG(40));
     this.spriteManager.loadSprite('background_tile', SpriteManager.getBackgroundTileSVG(100));
     this.spriteManager.loadSprite('vendor', SpriteManager.getVendorSpriteSVG(this.gameState.vendor.size * 2));
-    this.spriteManager.loadSprite('boss', SpriteManager.getBossSpriteSVG(80 * 2)); // Load boss sprite
+    
+    // Load letter-specific boss sprites
+    this.spriteManager.loadSprite('boss_s', SpriteManager.getBossSSpriteSVG(80 * 2));
+    this.spriteManager.loadSprite('boss_i', SpriteManager.getBossISpriteSVG(80 * 2));
+    this.spriteManager.loadSprite('boss_m', SpriteManager.getBossMSpriteSVG(80 * 2));
+    this.spriteManager.loadSprite('boss_g', SpriteManager.getBossGSpriteSVG(80 * 2));
+    this.spriteManager.loadSprite('boss_e', SpriteManager.getBossESpriteSVG(80 * 2));
+    // Fallback generic boss sprite (if needed, though specific ones will be used)
+    this.spriteManager.loadSprite('boss', SpriteManager.getBossSpriteSVG(80 * 2)); 
 
     // Sounds (using placeholder base64 audio)
     this.soundManager.loadSound('dash', SoundManager.getDashSound());

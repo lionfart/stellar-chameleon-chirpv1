@@ -269,6 +269,7 @@ export class SpriteManager {
     `;
   }
 
+  // Generic Boss Sprite (fallback)
   static getBossSpriteSVG(size: number): string {
     return `
       <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
@@ -283,6 +284,87 @@ export class SpriteManager {
         <circle cx="${size * 0.7}" cy="${size * 0.3}" r="${size * 0.1}" fill="#FFFFFF"/>
         <path d="M${size * 0.3},${size * 0.7} Q${size / 2},${size * 0.8} ${size * 0.7},${size * 0.7}" stroke="#FFFFFF" stroke-width="2" fill="none"/>
         <rect x="${size * 0.45}" y="${size * 0.1}" width="${size * 0.1}" height="${size * 0.2}" fill="#FFEB3B"/>
+      </svg>
+    `;
+  }
+
+  // New letter-specific boss sprites
+  static getBossSSpriteSVG(size: number): string {
+    return `
+      <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="sBossGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#FF4500" />
+            <stop offset="100%" stop-color="#B22222" />
+          </linearGradient>
+        </defs>
+        <path d="M${size * 0.8},${size * 0.1} Q${size * 0.9},${size * 0.1} ${size * 0.9},${size * 0.2} L${size * 0.9},${size * 0.4} Q${size * 0.9},${size * 0.5} ${size * 0.8},${size * 0.5} L${size * 0.2},${size * 0.5} Q${size * 0.1},${size * 0.5} ${size * 0.1},${size * 0.6} L${size * 0.1},${size * 0.8} Q${size * 0.1},${size * 0.9} ${size * 0.2},${size * 0.9} L${size * 0.8},${size * 0.9} Q${size * 0.9},${size * 0.9} ${size * 0.9},${size * 0.8} L${size * 0.9},${size * 0.6} Q${size * 0.9},${size * 0.5} ${size * 0.8},${size * 0.5} L${size * 0.2},${size * 0.5} Q${size * 0.1},${size * 0.5} ${size * 0.1},${size * 0.4} L${size * 0.1},${size * 0.2} Q${size * 0.1},${size * 0.1} ${size * 0.2},${size * 0.1} Z" fill="url(#sBossGradient)" stroke="#8B0000" stroke-width="2"/>
+        <circle cx="${size * 0.5}" cy="${size * 0.5}" r="${size * 0.1}" fill="#FFD700" opacity="0.7"/>
+      </svg>
+    `;
+  }
+
+  static getBossISpriteSVG(size: number): string {
+    return `
+      <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="iBossGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#4CAF50" />
+            <stop offset="100%" stop-color="#2E7D32" />
+          </linearGradient>
+        </defs>
+        <rect x="${size * 0.4}" y="${size * 0.1}" width="${size * 0.2}" height="${size * 0.8}" fill="url(#iBossGradient)" stroke="#1B5E20" stroke-width="2"/>
+        <rect x="${size * 0.3}" y="${size * 0.1}" width="${size * 0.4}" height="${size * 0.1}" fill="url(#iBossGradient)" stroke="#1B5E20" stroke-width="2"/>
+        <rect x="${size * 0.3}" y="${size * 0.8}" width="${size * 0.4}" height="${size * 0.1}" fill="url(#iBossGradient)" stroke="#1B5E20" stroke-width="2"/>
+        <circle cx="${size * 0.5}" cy="${size * 0.5}" r="${size * 0.08}" fill="#FFFFFF" opacity="0.8"/>
+      </svg>
+    `;
+  }
+
+  static getBossMSpriteSVG(size: number): string {
+    return `
+      <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="mBossGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#6A1B9A" />
+            <stop offset="100%" stop-color="#4A148C" />
+          </linearGradient>
+        </defs>
+        <path d="M${size * 0.1},${size * 0.9} L${size * 0.1},${size * 0.1} L${size * 0.5},${size * 0.5} L${size * 0.9},${size * 0.1} L${size * 0.9},${size * 0.9} Z" fill="url(#mBossGradient)" stroke="#311B92" stroke-width="2"/>
+        <circle cx="${size * 0.3}" cy="${size * 0.3}" r="${size * 0.07}" fill="#FFEB3B"/>
+        <circle cx="${size * 0.7}" cy="${size * 0.3}" r="${size * 0.07}" fill="#FFEB3B"/>
+      </svg>
+    `;
+  }
+
+  static getBossGSpriteSVG(size: number): string {
+    return `
+      <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="gBossGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#FFC107" />
+            <stop offset="100%" stop-color="#FF8F00" />
+          </linearGradient>
+        </defs>
+        <path d="M${size * 0.9},${size * 0.7} A${size * 0.4},${size * 0.4} 0 1 1 ${size * 0.5},${size * 0.1} A${size * 0.4},${size * 0.4} 0 0 1 ${size * 0.9},${size * 0.5} L${size * 0.9},${size * 0.3} L${size * 0.7},${size * 0.3} L${size * 0.7},${size * 0.5} L${size * 0.5},${size * 0.5} L${size * 0.5},${size * 0.7} L${size * 0.7},${size * 0.7} Z" fill="url(#gBossGradient)" stroke="#FF6F00" stroke-width="2"/>
+        <circle cx="${size * 0.7}" cy="${size * 0.4}" r="${size * 0.05}" fill="#FFFFFF"/>
+      </svg>
+    `;
+  }
+
+  static getBossESpriteSVG(size: number): string {
+    return `
+      <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="eBossGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#00BCD4" />
+            <stop offset="100%" stop-color="#00838F" />
+          </linearGradient>
+        </defs>
+        <rect x="${size * 0.1}" y="${size * 0.1}" width="${size * 0.8}" height="${size * 0.15}" fill="url(#eBossGradient)" stroke="#006064" stroke-width="2"/>
+        <rect x="${size * 0.1}" y="${size * 0.425}" width="${size * 0.6}" height="${size * 0.15}" fill="url(#eBossGradient)" stroke="#006064" stroke-width="2"/>
+        <rect x="${size * 0.1}" y="${size * 0.75}" width="${size * 0.8}" height="${size * 0.15}" fill="url(#eBossGradient)" stroke="#006064" stroke-width="2"/>
+        <circle cx="${size * 0.2}" cy="${size * 0.5}" r="${size * 0.05}" fill="#FFFFFF" opacity="0.7"/>
       </svg>
     `;
   }

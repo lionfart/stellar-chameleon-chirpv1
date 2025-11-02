@@ -101,8 +101,38 @@ export class WaveManager {
     const bossHealth = 500 + (this.gameState.waveNumber / this.bossWaveInterval - 1) * 200;
     const bossSpeed = 80;
     const bossGold = 100;
-    const bossSprite = this.spriteManager.getSprite('boss');
-    const bossName = `Wave ${this.gameState.waveNumber} Boss`;
+    
+    // Determine which letter boss to spawn
+    const nextLetter = this.gameState.princessNameLetters[this.gameState.nextLetterIndex];
+    let bossSprite: HTMLImageElement | undefined;
+    let bossName: string;
+
+    switch (nextLetter) {
+      case 'S':
+        bossSprite = this.spriteManager.getSprite('boss_s');
+        bossName = `Boss S`;
+        break;
+      case 'I':
+        bossSprite = this.spriteManager.getSprite('boss_i');
+        bossName = `Boss I`;
+        break;
+      case 'M':
+        bossSprite = this.spriteManager.getSprite('boss_m');
+        bossName = `Boss M`;
+        break;
+      case 'G':
+        bossSprite = this.spriteManager.getSprite('boss_g');
+        bossName = `Boss G`;
+        break;
+      case 'E':
+        bossSprite = this.spriteManager.getSprite('boss_e');
+        bossName = `Boss E`;
+        break;
+      default:
+        bossSprite = this.spriteManager.getSprite('boss'); // Fallback generic boss
+        bossName = `Wave ${this.gameState.waveNumber} Boss`;
+        break;
+    }
 
     this.gameState.currentBoss = new Boss(
       this.bossSpawnLocation.x, this.bossSpawnLocation.y, bossSize, bossSpeed, 'red', bossHealth,
