@@ -18,7 +18,7 @@ import { PowerUpManager } from './PowerUpManager';
 import { GameOverScreen } from './GameOverScreen';
 import { DamageNumber } from './DamageNumber';
 import { ShooterEnemy } from './ShooterEnemy';
-import { Boss } from './Boss';
+import { Boss } from './Boss'; // Import Boss
 import { showSuccess, showError } from '@/utils/toast';
 
 // Define shop item types
@@ -170,7 +170,6 @@ export class GameEngine {
     this.spriteManager.loadSprite('experience_gem', SpriteManager.getExperienceGemSpriteSVG(20));
     this.spriteManager.loadSprite('magnet_powerup', SpriteManager.getMagnetPowerUpSpriteSVG(40));
     this.spriteManager.loadSprite('background_tile', SpriteManager.getBackgroundTileSVG(100));
-    this.spriteManager.loadSprite('far_background_tile', SpriteManager.getFarBackgroundTileSVG(100)); // NEW: Far background tile
     this.spriteManager.loadSprite('vendor', SpriteManager.getVendorSpriteSVG(this.gameState.vendor.size * 2));
     this.spriteManager.loadSprite('boss', SpriteManager.getBossSpriteSVG(80 * 2)); // Load boss sprite
 
@@ -590,48 +589,20 @@ export class GameEngine {
 
     this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
 
-    const farBackgroundTile = this.spriteManager.getSprite('far_background_tile');
     const backgroundTile = this.spriteManager.getSprite('background_tile');
-
-    // Draw far background layer with slower parallax
-    if (farBackgroundTile) {
-      const tileWidth = farBackgroundTile.width;
-      const tileHeight = farBackgroundTile.height;
-      const parallaxFactor = 0.5; // Moves slower than camera
-      const parallaxCameraX = this.cameraX * parallaxFactor;
-      const parallaxCameraY = this.cameraY * parallaxFactor;
-
-      const startX = -parallaxCameraX % tileWidth;
-      const startY = -parallaxCameraY % tileHeight;
-
-      for (let x = startX; x < this.ctx.canvas.width + tileWidth; x += tileWidth) {
-        for (let y = startY; y < this.ctx.canvas.height + tileHeight; y += tileHeight) {
-          this.ctx.drawImage(farBackgroundTile, x, y, tileWidth, tileHeight);
-        }
-      }
-    } else {
-      this.ctx.fillStyle = '#1a1a1a'; // Fallback for far background
-      this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
-    }
-
-    // Draw main background layer with slightly faster parallax
     if (backgroundTile) {
       const tileWidth = backgroundTile.width;
       const tileHeight = backgroundTile.height;
-      const parallaxFactor = 0.8; // Moves faster than far background, slower than foreground
-      const parallaxCameraX = this.cameraX * parallaxFactor;
-      const parallaxCameraY = this.cameraY * parallaxFactor;
+      const startX = -this.cameraX % tileWidth;
+      const startY = -this.cameraY % tileHeight;
 
-      const startX = -parallaxCameraX % tileWidth;
-      const startY = -parallaxCameraY % tileHeight;
-
-      for (let x = startX; x < this.ctx.canvas.width + tileWidth; x += tileWidth) {
-        for (let y = startY; y < this.ctx.canvas.height + tileHeight; y += tileHeight) {
+      for (let x = startX; x < this.ctx.canvas.width; x += tileWidth) {
+        for (let y = startY; y < this.ctx.canvas.height; y += tileHeight) {
           this.ctx.drawImage(backgroundTile, x, y, tileWidth, tileHeight);
         }
       }
     } else {
-      this.ctx.fillStyle = '#333'; // Fallback for main background
+      this.ctx.fillStyle = '#333';
       this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
     }
 

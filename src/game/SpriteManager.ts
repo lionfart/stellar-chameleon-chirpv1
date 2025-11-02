@@ -228,16 +228,6 @@ export class SpriteManager {
     `;
   }
 
-  static getFarBackgroundTileSVG(size: number): string {
-    return `
-      <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
-        <rect width="${size}" height="${size}" fill="#0d0d0d"/>
-        <line x1="0" y1="0" x2="${size}" y2="${size}" stroke="#222" stroke-width="0.5"/>
-        <line x1="0" y1="${size}" x2="${size}" y2="0" stroke="#222" stroke-width="0.5"/>
-      </svg>
-    `;
-  }
-
   static getVendorSpriteSVG(size: number): string {
     return `
       <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
