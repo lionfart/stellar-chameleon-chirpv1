@@ -4,6 +4,7 @@ import { SoundManager } from './SoundManager';
 import { Enemy } from './Enemy';
 import { ShooterEnemy } from './ShooterEnemy';
 import { Boss } from './Boss'; // Import Boss
+import { BossWarning } from './BossWarning'; // Import BossWarning
 import { clamp } from './utils';
 
 export class WaveManager {
@@ -13,6 +14,8 @@ export class WaveManager {
   private enemySpawnTimer: number;
   private waveDuration: number = 60; // seconds per wave
   private bossWaveInterval: number = 3; // Spawn a boss every 3 waves
+  private bossSpawnLocation: { x: number, y: number } | null = null;
+  private bossSpawnCorner: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | null = null;
 
   constructor(gameState: GameState, spriteManager: SpriteManager, soundManager: SoundManager) {
     this.gameState = gameState;
@@ -22,8 +25,8 @@ export class WaveManager {
   }
 
   update(deltaTime: number, cameraX: number, cameraY: number, canvasWidth: number, canvasHeight: number) {
-    // If a boss is active, don't spawn regular enemies
-    if (this.gameState.currentBoss && this.gameState.currentBoss.isAlive()) {
+    // If a boss is active OR a boss warning is active, don't spawn regular enemies
+    if ((this.gameState.currentBoss && this.gameState.currentBoss.isAlive()) || this.gameState.isBossWarningActive) {
       return;
     }
 
@@ -36,7 +39,7 @@ export class WaveManager {
 
       // Check if it's a boss wave
       if (this.gameState.waveNumber % this.bossWaveInterval === 0) {
-        this.spawnBoss(cameraX, cameraY, canvasWidth, canvasHeight);
+        this.triggerBossWarning(canvasWidth, canvasHeight); // Trigger warning instead of direct spawn
       }
     }
 
@@ -45,6 +48,73 @@ export class WaveManager {
       this.spawnEnemy(cameraX, cameraY, canvasWidth, canvasHeight);
       this.enemySpawnTimer = 0;
     }
+  }
+
+  private triggerBossWarning(canvasWidth: number, canvasHeight: number) {
+    // Clear existing enemies before spawning boss
+    this.gameState.enemies = [];
+
+    // Determine a random corner for the boss to spawn in the world
+    const corners = ['top-left', 'top-right', 'bottom-left', 'bottom-right'] as const;
+    const selectedCorner = corners[Math.floor(Math.random() * corners.length)];
+    this.bossSpawnCorner = selectedCorner;
+
+    const bossSize = 80;
+    let spawnX, spawnY;
+
+    // Calculate world coordinates for the chosen corner
+    // Offset from the very edge to ensure boss is fully visible
+    const offset = bossSize / 2 + 50; 
+    switch (selectedCorner) {
+      case 'top-left':
+        spawnX = offset;
+        spawnY = offset;
+        break;
+      case 'top-right':
+        spawnX = this.gameState.worldWidth - offset;
+        spawnY = offset;
+        break;
+      case 'bottom-left':
+        spawnX = offset;
+        spawnY = this.gameState.worldHeight - offset;
+        break;
+      case 'bottom-right':
+        spawnX = this.gameState.worldWidth - offset;
+        spawnY = this.gameState.worldHeight - offset;
+        break;
+    }
+    this.bossSpawnLocation = { x: spawnX, y: spawnY };
+
+    // Initialize BossWarning for the canvas (screen coordinates)
+    this.gameState.bossWarning = new BossWarning(canvasWidth, canvasHeight, selectedCorner, 3); // Warning lasts 3 seconds
+    this.gameState.isBossWarningActive = true;
+    console.log(`BOSS WARNING: Boss will spawn in ${selectedCorner} corner!`);
+  }
+
+  spawnBossAfterWarning() {
+    if (!this.bossSpawnLocation || !this.bossSpawnCorner) {
+      console.error("Attempted to spawn boss without a valid spawn location/corner.");
+      return;
+    }
+
+    const bossSize = 80;
+    const bossHealth = 500 + (this.gameState.waveNumber / this.bossWaveInterval - 1) * 200;
+    const bossSpeed = 80;
+    const bossGold = 100;
+    const bossSprite = this.spriteManager.getSprite('boss');
+    const bossName = `Wave ${this.gameState.waveNumber} Boss`;
+
+    this.gameState.currentBoss = new Boss(
+      this.bossSpawnLocation.x, this.bossSpawnLocation.y, bossSize, bossSpeed, 'red', bossHealth,
+      bossSprite, this.soundManager, bossGold, this.gameState.damageNumbers.push.bind(this.gameState.damageNumbers),
+      bossName
+    );
+    this.gameState.enemies.push(this.gameState.currentBoss);
+    console.log(`BOSS SPAWNED: ${bossName} at (${this.bossSpawnLocation.x.toFixed(0)}, ${this.bossSpawnLocation.y.toFixed(0)})!`);
+
+    // Clear spawn info after boss is spawned
+    this.bossSpawnLocation = null;
+    this.bossSpawnCorner = null;
   }
 
   private spawnEnemy(cameraX: number, cameraY: number, canvasWidth: number, canvasHeight: number) {
@@ -113,32 +183,12 @@ export class WaveManager {
     }
   }
 
-  private spawnBoss(cameraX: number, cameraY: number, canvasWidth: number, canvasHeight: number) {
-    // Clear existing enemies before spawning boss
-    this.gameState.enemies = [];
-
-    const bossSize = 80;
-    const bossHealth = 500 + (this.gameState.waveNumber / this.bossWaveInterval - 1) * 200; // Scale boss health
-    const bossSpeed = 80;
-    const bossGold = 100;
-    const bossSprite = this.spriteManager.getSprite('boss');
-    const bossName = `Wave ${this.gameState.waveNumber} Boss`;
-
-    // Spawn boss near the center of the visible screen, but within world bounds
-    const spawnX = clamp(cameraX + canvasWidth / 2, bossSize / 2, this.gameState.worldWidth - bossSize / 2);
-    const spawnY = clamp(cameraY + canvasHeight / 2, bossSize / 2, this.gameState.worldHeight - bossSize / 2);
-
-    this.gameState.currentBoss = new Boss(
-      spawnX, spawnY, bossSize, bossSpeed, 'red', bossHealth,
-      bossSprite, this.soundManager, bossGold, this.gameState.damageNumbers.push.bind(this.gameState.damageNumbers),
-      bossName
-    );
-    this.gameState.enemies.push(this.gameState.currentBoss); // Add boss to enemies array for general handling
-    console.log(`BOSS SPAWNED: ${bossName} with ${bossHealth} HP!`);
-  }
-
   reset() {
     this.enemySpawnTimer = 0;
     this.gameState.currentBoss = undefined; // Clear boss on reset
+    this.gameState.isBossWarningActive = false; // Reset warning state
+    this.gameState.bossWarning = undefined; // Clear warning instance
+    this.bossSpawnLocation = null;
+    this.bossSpawnCorner = null;
   }
 }

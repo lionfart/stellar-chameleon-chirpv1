@@ -20,6 +20,7 @@ import { GameWinScreen } from './GameWinScreen'; // Import GameWinScreen
 import { DamageNumber } from './DamageNumber';
 import { ShooterEnemy } from './ShooterEnemy';
 import { Boss } from './Boss'; // Import Boss
+import { BossWarning } from './BossWarning'; // Import BossWarning
 import { showSuccess, showError } from '@/utils/toast';
 
 // Define shop item types
@@ -490,6 +491,17 @@ export class GameEngine {
 
     deltaTime = Math.min(deltaTime, MAX_DELTA_TIME);
 
+    // Handle boss warning update
+    if (this.gameState.isBossWarningActive && this.gameState.bossWarning) {
+      const warningActive = this.gameState.bossWarning.update(deltaTime);
+      if (!warningActive) {
+        this.gameState.isBossWarningActive = false;
+        this.gameState.bossWarning = undefined; // Clear warning instance
+        this.waveManager.spawnBossAfterWarning(); // Now actually spawn the boss
+      }
+      return; // Don't update other game elements while warning is active
+    }
+
     console.log("GameEngine: Updating with deltaTime:", deltaTime);
 
     this.gameState.player.update(this.inputHandler, deltaTime, this.gameState.worldWidth, this.gameState.worldHeight);
@@ -736,6 +748,11 @@ export class GameEngine {
       this.gameWinScreen.draw(this.ctx, this.ctx.canvas.width, this.ctx.canvas.height);
     } else {
       this.gameWinScreen.clearClickListener();
+    }
+
+    // Draw boss warning if active
+    if (this.gameState.isBossWarningActive && this.gameState.bossWarning) {
+      this.gameState.bossWarning.draw(this.ctx);
     }
   }
 

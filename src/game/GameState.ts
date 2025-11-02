@@ -12,6 +12,7 @@ import { Vendor } from './Vendor';
 import { DamageNumber } from './DamageNumber';
 import { HealAbility } from './HealAbility';
 import { Boss } from './Boss'; // Import Boss
+import { BossWarning } from './BossWarning'; // Import BossWarning
 
 export class GameState {
   player: Player;
@@ -28,6 +29,8 @@ export class GameState {
   vendor: Vendor;
   damageNumbers: DamageNumber[];
   currentBoss: Boss | undefined; // New: Current active boss
+  bossWarning: BossWarning | undefined; // New: Boss warning instance
+  isBossWarningActive: boolean; // New: Flag to indicate if boss warning is active
 
   worldWidth: number;
   worldHeight: number;
@@ -89,6 +92,8 @@ export class GameState {
     this.magnetPowerUps = [];
     this.damageNumbers = [];
     this.currentBoss = undefined; // Initialize currentBoss
+    this.bossWarning = undefined; // Initialize boss warning
+    this.isBossWarningActive = false; // Initialize boss warning flag
 
     this.worldWidth = worldWidth;
     this.worldHeight = worldHeight;
@@ -111,6 +116,8 @@ export class GameState {
     this.magnetPowerUps = [];
     this.damageNumbers = [];
     this.currentBoss = undefined; // Reset currentBoss
+    this.bossWarning = undefined; // Reset boss warning
+    this.isBossWarningActive = false; // Reset boss warning flag
     this.waveNumber = 1;
     this.waveTimeElapsed = 0;
     this.enemySpawnInterval = 2;
