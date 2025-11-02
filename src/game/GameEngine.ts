@@ -246,25 +246,37 @@ export class GameEngine {
 
   restartGame = () => {
     console.log("GameEngine: Restarting game..."); // Debug log
-    this.gameState.reset();
-    this.waveManager.reset();
-    this.powerUpManager.reset();
+    // Remove the old gameState.reset() as we are creating a new GameState object.
+    // this.gameState.reset(); 
 
-    const player = new Player(this.worldWidth / 2, this.worldHeight / 2, 30, 200, 'blue', 100, this.triggerLevelUp, this.spriteManager.getSprite('player'), this.soundManager);
-    const vendor = new Vendor(this.worldWidth / 2 + 200, this.worldHeight / 2, 50, this.spriteManager.getSprite('vendor'));
+    const player = new Player(this.worldWidth / 2, this.worldHeight / 2, 30, 200, 'blue', 100, this.triggerLevelUp, undefined, this.soundManager);
+    const vendor = new Vendor(this.worldWidth / 2 + 200, this.worldHeight / 2, 50, undefined);
 
     // Randomly select one starting weapon for restart
     const startingWeapons = [
       new AuraWeapon(10, 100, 0.5),
-      new ProjectileWeapon(15, 300, 1.5, 8, 3, this.spriteManager.getSprite('projectile'), this.soundManager),
-      new SpinningBladeWeapon(10, 60, 3, 10, 1, this.spriteManager.getSprite('spinning_blade'), this.soundManager),
+      new ProjectileWeapon(15, 300, 1.5, 8, 3, undefined, this.soundManager),
+      new SpinningBladeWeapon(10, 60, 3, 10, 1, undefined, this.soundManager),
     ];
     const initialWeapon = startingWeapons[Math.floor(Math.random() * startingWeapons.length)];
 
+    // Create a new GameState instance
     this.gameState = new GameState(player, vendor, this.worldWidth, this.worldHeight, initialWeapon);
     
-    // Removed redundant if (this.gameState.shieldAbility) block
-    // The player's shield ability is set when the shield is purchased.
+    // Re-initialize managers with the new GameState instance
+    this.waveManager = new WaveManager(this.gameState, this.spriteManager, this.soundManager);
+    this.powerUpManager = new PowerUpManager(this.gameState, this.spriteManager, this.soundManager);
+    this.hud = new HUD(this.gameState); // Re-initialize HUD with the new gameState
+
+    // Re-apply sprites to the new player and weapons
+    this.gameState.player.setSprite(this.spriteManager.getSprite('player'));
+    if (this.gameState.projectileWeapon) {
+      this.gameState.projectileWeapon['projectileSprite'] = this.spriteManager.getSprite('projectile');
+    }
+    if (this.gameState.spinningBladeWeapon) {
+      this.gameState.spinningBladeWeapon['bladeSprite'] = this.spriteManager.getSprite('spinning_blade');
+    }
+    this.gameState.vendor['sprite'] = this.spriteManager.getSprite('vendor');
 
     this.gameOverScreen.clearClickListener();
     this.lastTime = performance.now();
