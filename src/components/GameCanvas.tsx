@@ -32,7 +32,7 @@ const ALL_LEVEL_UP_OPTIONS = [
 ];
 
 const GameCanvas: React.FC = () => {
-  console.log("GameCanvas component rendering..."); // Debug log for component renders
+  console.log("GameCanvas component rendering...");
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameEngineRef = useRef<GameEngine | null>(null);
   const [showLevelUpScreen, setShowLevelUpScreen] = useState(false);
@@ -42,6 +42,7 @@ const GameCanvas: React.FC = () => {
   const [playerGold, setPlayerGold] = useState(0);
   const notificationsShownRef = useRef(false);
 
+  // Level Up Callbacks
   const handleLevelUp = useCallback(() => {
     const shuffled = [...ALL_LEVEL_UP_OPTIONS].sort(() => 0.5 - Math.random());
     setCurrentLevelUpOptions(shuffled.slice(0, 3));
@@ -55,7 +56,8 @@ const GameCanvas: React.FC = () => {
     gameEngineRef.current?.resume();
   }, []);
 
-  // These callbacks are now responsible for updating GameCanvas's state
+  // Shop Callbacks - These are now passed to GameEngine directly
+  // and will update GameCanvas's state
   const handleOpenShop = useCallback((items: ShopItem[], gold: number) => {
     console.log("GameCanvas: handleOpenShop called.");
     setCurrentShopItems(items);
@@ -83,6 +85,7 @@ const GameCanvas: React.FC = () => {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
+    // Pass the stable callback references to GameEngine
     gameEngineRef.current = new GameEngine(ctx, handleLevelUp, handleOpenShop, handleCloseShop);
     gameEngineRef.current.init();
 
@@ -107,7 +110,7 @@ const GameCanvas: React.FC = () => {
       gameEngineRef.current?.stop();
       window.removeEventListener('resize', handleResize);
     };
-  }, [handleLevelUp, handleOpenShop, handleCloseShop]); // Added handleOpenShop, handleCloseShop to dependencies
+  }, [handleLevelUp, handleOpenShop, handleCloseShop]); // Keep these in dependencies as they are passed to GameEngine constructor
 
   return (
     <div className="relative w-full h-full overflow-hidden">
@@ -119,7 +122,7 @@ const GameCanvas: React.FC = () => {
         <ShopScreen
           items={currentShopItems}
           onPurchase={handlePurchaseItem}
-          onClose={() => gameEngineRef.current?.closeShop()} // Directly call GameEngine's closeShop
+          onClose={() => gameEngineRef.current?.closeShop()}
           playerGold={playerGold}
         />
       )}
