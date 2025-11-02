@@ -1,5 +1,6 @@
 import { InputHandler } from './InputHandler';
 import { clamp } from './utils';
+import { ShieldAbility } from './ShieldAbility'; // Import ShieldAbility
 
 export class Player {
   x: number;
@@ -13,6 +14,7 @@ export class Player {
   level: number;
   experienceToNextLevel: number;
   private onLevelUpCallback: () => void;
+  private shieldAbility: ShieldAbility | null = null; // Reference to the shield ability
 
   // Dash properties
   private dashSpeedMultiplier: number = 2.5; // How much faster the player moves during a dash
@@ -36,6 +38,10 @@ export class Player {
     this.onLevelUpCallback = onLevelUp;
   }
 
+  setShieldAbility(shieldAbility: ShieldAbility) {
+    this.shieldAbility = shieldAbility;
+  }
+
   update(input: InputHandler, deltaTime: number, worldWidth: number, worldHeight: number) {
     if (!this.isAlive()) return;
 
@@ -50,6 +56,15 @@ export class Player {
       this.currentDashDuration = this.dashDuration;
       this.currentDashCooldown = this.dashCooldown; // Start cooldown immediately
       console.log("Dash activated!");
+    }
+
+    // Check for shield activation input (e.g., 'q' key)
+    if (input.isPressed('q') && this.shieldAbility) {
+      if (this.shieldAbility.shield.isActive) {
+        this.shieldAbility.deactivateShield();
+      } else {
+        this.shieldAbility.activateShield();
+      }
     }
 
     let moveAmount = this.speed * deltaTime;
@@ -98,11 +113,21 @@ export class Player {
   }
 
   takeDamage(amount: number) {
-    this.currentHealth -= amount;
-    if (this.currentHealth < 0) {
-      this.currentHealth = 0;
+    let remainingDamage = amount;
+
+    if (this.shieldAbility && this.shieldAbility.shield.isActive) {
+      remainingDamage = this.shieldAbility.shield.takeDamage(amount);
     }
-    console.log(`Player took ${amount} damage. Health: ${this.currentHealth}`);
+
+    if (remainingDamage > 0) {
+      this.currentHealth -= remainingDamage;
+      if (this.currentHealth < 0) {
+        this.currentHealth = 0;
+      }
+      console.log(`Player took ${remainingDamage} damage. Health: ${this.currentHealth}`);
+    } else {
+      console.log(`Shield absorbed ${amount} damage.`);
+    }
   }
 
   isAlive(): boolean {

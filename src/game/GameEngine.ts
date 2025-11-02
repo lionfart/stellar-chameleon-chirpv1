@@ -6,7 +6,8 @@ import { ExperienceGem } from './ExperienceGem';
 import { ProjectileWeapon } from './ProjectileWeapon';
 import { SpinningBladeWeapon } from './SpinningBladeWeapon';
 import { MagnetPowerUp } from './MagnetPowerUp';
-import { ExplosionAbility } from './ExplosionAbility'; // Import new ability
+import { ExplosionAbility } from './ExplosionAbility';
+import { ShieldAbility } from './ShieldAbility'; // Import new ability
 import { clamp } from './utils';
 
 export class GameEngine {
@@ -25,7 +26,8 @@ export class GameEngine {
   private auraWeapon: AuraWeapon;
   private projectileWeapon: ProjectileWeapon;
   private spinningBladeWeapon: SpinningBladeWeapon;
-  private explosionAbility: ExplosionAbility; // New ability instance
+  private explosionAbility: ExplosionAbility;
+  private shieldAbility: ShieldAbility; // New shield ability instance
   private gameOver: boolean = false;
   private isPaused: boolean = false;
   private onLevelUpCallback: () => void;
@@ -56,7 +58,9 @@ export class GameEngine {
     this.auraWeapon = new AuraWeapon(10, 100, 0.5);
     this.projectileWeapon = new ProjectileWeapon(15, 300, 1.5, 8, 3);
     this.spinningBladeWeapon = new SpinningBladeWeapon(10, 60, 3, 10, 1);
-    this.explosionAbility = new ExplosionAbility(50, 150, 5); // Initialize explosion ability
+    this.explosionAbility = new ExplosionAbility(50, 150, 5);
+    this.shieldAbility = new ShieldAbility(40, 100, 10, 10); // Initialize shield ability (radius, maxHealth, cooldown, regenRate)
+    this.player.setShieldAbility(this.shieldAbility); // Pass shield ability to player
     this.onLevelUpCallback = onLevelUp;
   }
 
@@ -104,14 +108,23 @@ export class GameEngine {
       case 'add_blade':
         this.spinningBladeWeapon.addBlade();
         break;
-      case 'explosion_damage': // New upgrade
+      case 'explosion_damage':
         this.explosionAbility.increaseDamage(20);
         break;
-      case 'explosion_cooldown': // New upgrade
+      case 'explosion_cooldown':
         this.explosionAbility.reduceCooldown(1);
         break;
-      case 'explosion_radius': // New upgrade
+      case 'explosion_radius':
         this.explosionAbility.increaseRadius(20);
+        break;
+      case 'shield_health': // New upgrade
+        this.shieldAbility.increaseMaxHealth(30);
+        break;
+      case 'shield_regen': // New upgrade
+        this.shieldAbility.increaseRegeneration(5);
+        break;
+      case 'shield_cooldown': // New upgrade
+        this.shieldAbility.reduceCooldown(1.5);
         break;
       default:
         console.warn(`Unknown upgrade ID: ${upgradeId}`);
@@ -203,14 +216,15 @@ export class GameEngine {
 
     this.enemies.forEach(enemy => {
       if (this.player.collidesWith(enemy)) {
-        this.player.takeDamage(5);
+        this.player.takeDamage(5); // Player takes damage from enemy collision
       }
     });
 
     this.auraWeapon.update(deltaTime, this.player.x, this.player.y, this.enemies);
     this.projectileWeapon.update(deltaTime, this.player.x, this.player.y, this.enemies);
     this.spinningBladeWeapon.update(deltaTime, this.player.x, this.player.y, this.enemies);
-    this.explosionAbility.update(deltaTime, this.enemies); // Update explosion ability
+    this.explosionAbility.update(deltaTime, this.enemies);
+    this.shieldAbility.update(deltaTime, this.player.x, this.player.y); // Update shield ability
 
     const defeatedEnemies = this.enemies.filter(enemy => !enemy.isAlive());
     defeatedEnemies.forEach(enemy => {
@@ -284,12 +298,13 @@ export class GameEngine {
     this.auraWeapon.draw(this.ctx, this.player.x, this.player.y, this.cameraX, this.cameraY);
     this.projectileWeapon.draw(this.ctx, this.cameraX, this.cameraY);
     this.spinningBladeWeapon.draw(this.ctx, this.cameraX, this.cameraY);
-    this.explosionAbility.draw(this.ctx, this.cameraX, this.cameraY); // Draw explosions
+    this.explosionAbility.draw(this.ctx, this.cameraX, this.cameraY);
 
     this.experienceGems.forEach(gem => gem.draw(this.ctx, this.cameraX, this.cameraY));
     this.magnetPowerUps.forEach(magnet => magnet.draw(this.ctx, this.cameraX, this.cameraY));
 
     this.player.draw(this.ctx, this.cameraX, this.cameraY);
+    this.shieldAbility.draw(this.ctx, this.cameraX, this.cameraY); // Draw shield
 
     this.enemies.forEach(enemy => enemy.draw(this.ctx, this.cameraX, this.cameraY));
 
@@ -308,6 +323,8 @@ export class GameEngine {
     this.ctx.fillText(`Health: ${this.player.currentHealth}/${this.player.maxHealth}`, 10, 30);
     this.ctx.fillText(`Level: ${this.player.level}`, 10, 60);
     this.ctx.fillText(`XP: ${this.player.experience}/${this.player.experienceToNextLevel}`, 10, 90);
+    this.ctx.fillText(`Shield: ${this.shieldAbility.shield.isActive ? `${this.shieldAbility.shield.currentHealth}/${this.shieldAbility.shield.maxHealth}` : 'Inactive'}`, 10, 120);
+
 
     // Display wave information
     this.ctx.textAlign = 'right';
