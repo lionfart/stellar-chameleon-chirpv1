@@ -137,4 +137,9 @@ export class SoundManager {
     // A simple, looping background music placeholder
     return "data:audio/wav;base64,UklGRl9vWlFXQVZFZmlsZQAkAAAAABxWQVZFZm10IBAAAAABAAEARKwAAESsAAABAAgAAABAAIAAAABeGFjdGEAAAAgAAAAAEJpdFNTYW1wbGUAAAAEAAAAAEZhdGEAAAAEAAAAAP//AAAAAA==";
   }
+
+  static getHealActivateSound(): string {
+    // A gentle "chime" or "sparkle" sound for healing
+    return "data:audio/wav;base64,UklGRl9vWlFXQVZFZmlsZQAkAAAAABxWQVZFZm10IBAAAAABAAEARKwAAESsAAABAAgAAABAAIAAAABeGFjdGEAAAAgAAAAAEJpdFNTYW1wbGUAAAAEAAAAAEZhdGEAAAAEAAAAAP//AAAAAA==";
+  }
 }

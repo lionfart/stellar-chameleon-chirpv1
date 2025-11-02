@@ -137,8 +137,14 @@ export class GameEngine {
     ];
     const initialWeapon = startingWeapons[Math.floor(Math.random() * startingWeapons.length)];
 
-    this.gameState = new GameState(player, vendor, this.worldWidth, this.worldHeight, initialWeapon);
+    // Initialize HealAbility here
+    const initialHealAbility = new HealAbility(30, 15, this.soundManager);
+
+    this.gameState = new GameState(player, vendor, this.worldWidth, this.worldHeight, initialWeapon, undefined, undefined, initialHealAbility);
     
+    // Set heal ability to player
+    this.gameState.player.setHealAbility(initialHealAbility);
+
     this.waveManager = new WaveManager(this.gameState, this.spriteManager, this.soundManager);
     this.powerUpManager = new PowerUpManager(this.gameState, this.spriteManager, this.soundManager);
     this.gameOverScreen = new GameOverScreen(this.restartGame, this.ctx.canvas);
@@ -181,6 +187,7 @@ export class GameEngine {
     this.soundManager.loadSound('player_hit', SoundManager.getPlayerHitSound());
     this.soundManager.loadSound('game_over', SoundManager.getGameOverSound());
     this.soundManager.loadSound('background_music', SoundManager.getBackgroundMusic());
+    this.soundManager.loadSound('heal_activate', SoundManager.getHealActivateSound()); // New heal sound
   }
 
   private onAllAssetsLoaded = () => {
@@ -340,8 +347,14 @@ export class GameEngine {
     ];
     const initialWeapon = startingWeapons[Math.floor(Math.random() * startingWeapons.length)];
 
-    this.gameState = new GameState(player, vendor, this.worldWidth, this.worldHeight, initialWeapon);
+    // Re-initialize HealAbility on restart
+    const initialHealAbility = new HealAbility(30, 15, this.soundManager);
+
+    this.gameState = new GameState(player, vendor, this.worldWidth, this.worldHeight, initialWeapon, undefined, undefined, initialHealAbility);
     
+    // Set heal ability to player on restart
+    this.gameState.player.setHealAbility(initialHealAbility);
+
     this.waveManager = new WaveManager(this.gameState, this.spriteManager, this.soundManager);
     this.powerUpManager = new PowerUpManager(this.gameState, this.spriteManager, this.soundManager);
     this.gameOverScreen = new GameOverScreen(this.restartGame, this.ctx.canvas);
