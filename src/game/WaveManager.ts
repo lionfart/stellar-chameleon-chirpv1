@@ -5,7 +5,6 @@ import { Enemy } from './Enemy';
 import { ShooterEnemy } from './ShooterEnemy';
 import { Boss } from './Boss'; // Import Boss
 import { BossWarning } from './BossWarning'; // Import BossWarning
-import { Explosion } from './Explosion'; // Import Explosion for the callback
 import { clamp } from './utils';
 
 export class WaveManager {
@@ -108,12 +107,7 @@ export class WaveManager {
     this.gameState.currentBoss = new Boss(
       this.bossSpawnLocation.x, this.bossSpawnLocation.y, bossSize, bossSpeed, 'red', bossHealth,
       bossSprite, this.soundManager, bossGold, this.gameState.damageNumbers.push.bind(this.gameState.damageNumbers),
-      bossName,
-      [0.75, 0.5, 0.25], // phaseThresholds (default value)
-      5, // specialAttackCooldown (default value)
-      (x, y, damage, radius) => { // Callback for boss explosion
-        this.gameState.explosionAbility.explosions.push(new Explosion(x, y, radius, damage, 0.5, 'red')); // Boss explosions are red
-      }
+      bossName
     );
     this.gameState.enemies.push(this.gameState.currentBoss);
     console.log(`BOSS SPAWNED: ${bossName} at (${this.bossSpawnLocation.x.toFixed(0)}, ${this.bossSpawnLocation.y.toFixed(0)})!`);

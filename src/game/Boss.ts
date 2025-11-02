@@ -2,7 +2,6 @@ import { Enemy } from './Enemy';
 import { Player } from './Player';
 import { SoundManager } from './SoundManager';
 import { DamageNumber } from './DamageNumber';
-import { Explosion } from './Explosion'; // Import Explosion for type hinting
 
 export class Boss extends Enemy {
   private bossName: string;
@@ -10,7 +9,6 @@ export class Boss extends Enemy {
   private phaseThresholds: number[]; // Health percentages to trigger phases
   private specialAttackCooldown: number;
   private currentSpecialAttackCooldown: number;
-  private onBossTriggerExplosion: (x: number, y: number, damage: number, radius: number) => void; // New callback
 
   constructor(
     x: number, y: number, size: number, speed: number, color: string, maxHealth: number,
@@ -18,8 +16,7 @@ export class Boss extends Enemy {
     onTakeDamage: (x: number, y: number, damage: number) => void,
     bossName: string = "Mega Enemy",
     phaseThresholds: number[] = [0.75, 0.5, 0.25], // Example: 75%, 50%, 25% health
-    specialAttackCooldown: number = 5, // seconds
-    onBossTriggerExplosion: (x: number, y: number, damage: number, radius: number) => void // New parameter
+    specialAttackCooldown: number = 5 // seconds
   ) {
     super(x, y, size, speed, color, maxHealth, sprite, soundManager, goldDrop, onTakeDamage);
     this.bossName = bossName;
@@ -27,7 +24,6 @@ export class Boss extends Enemy {
     this.phaseThresholds = phaseThresholds.sort((a, b) => b - a); // Sort descending
     this.specialAttackCooldown = specialAttackCooldown;
     this.currentSpecialAttackCooldown = specialAttackCooldown;
-    this.onBossTriggerExplosion = onBossTriggerExplosion; // Assign the callback
     console.log(`Boss ${this.bossName} spawned! Health: ${this.maxHealth}`);
   }
 
@@ -101,12 +97,19 @@ export class Boss extends Enemy {
 
   private performSpecialAttack(player: Player) {
     console.log(`${this.bossName} performs a special attack! Phase: ${this.phase}`);
-    const explosionRadius = this.size * 1.5; // Slightly smaller than boss
-    const explosionDamage = 30 + this.phase * 10; // Damage scales with phase
+    // Implement boss-specific special attacks here
+    // For example, a simple area damage or a burst of projectiles
+    const attackRadius = this.size * 2;
+    const attackDamage = 20 + this.phase * 5; // Damage scales with phase
 
-    // Trigger an explosion at the player's current location using the callback
-    this.onBossTriggerExplosion(player.x, player.y, explosionDamage, explosionRadius);
-    this.soundManager.playSound('explosion', false, 0.7);
+    const dx = player.x - this.x;
+    const dy = player.y - player.y; // Should be player.y - this.y
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    if (distance < attackRadius + player.size / 2) {
+      player.takeDamage(attackDamage);
+    }
+    this.soundManager.playSound('explosion', false, 0.7); // Re-use explosion sound for now
   }
 
   getBossName(): string {

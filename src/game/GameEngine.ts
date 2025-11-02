@@ -143,12 +143,6 @@ export class GameEngine {
     const player = new Player(this.worldWidth / 2, this.worldHeight / 2, 30, 200, 'blue', 100, this.triggerLevelUp, undefined, this.soundManager);
     const vendor = new Vendor(this.worldWidth / 2 + 200, this.worldHeight / 2, 50, undefined);
 
-    // Always initialize abilities, even if player hasn't bought them yet.
-    // Player's purchase will just "unlock" the ability for use.
-    const initialExplosionAbility = new ExplosionAbility(50, 150, 5, this.soundManager);
-    const initialShieldAbility = new ShieldAbility(40, 100, 10, 10, this.soundManager);
-    const initialHealAbility = new HealAbility(30, 15, this.soundManager);
-
     // Randomly select one starting weapon
     const startingWeapons = [
       new AuraWeapon(10, 100, 0.5),
@@ -158,21 +152,8 @@ export class GameEngine {
     ];
     const initialWeapon = startingWeapons[Math.floor(Math.random() * startingWeapons.length)];
 
-    this.gameState = new GameState(
-      player,
-      vendor,
-      this.worldWidth,
-      this.worldHeight,
-      initialWeapon,
-      initialExplosionAbility, // Pass the always-initialized explosion ability
-      initialShieldAbility,
-      initialHealAbility
-    );
+    this.gameState = new GameState(player, vendor, this.worldWidth, this.worldHeight, initialWeapon);
     
-    // Set abilities to player
-    this.gameState.player.setShieldAbility(this.gameState.shieldAbility);
-    this.gameState.player.setHealAbility(this.gameState.healAbility);
-
     this.waveManager = new WaveManager(this.gameState, this.spriteManager, this.soundManager);
     this.powerUpManager = new PowerUpManager(this.gameState, this.spriteManager, this.soundManager);
     this.gameOverScreen = new GameOverScreen(this.restartGame, this.ctx.canvas);
@@ -292,11 +273,9 @@ export class GameEngine {
       if (item.id === 'buy_projectile_weapon' && this.gameState.projectileWeapon) return false;
       if (item.id === 'buy_spinning_blade_weapon' && this.gameState.spinningBladeWeapon) return false;
       if (item.id === 'buy_homing_missile_weapon' && this.gameState.homingMissileWeapon) return false;
-      // Abilities are always initialized, so they are only "bought" once to unlock player use.
-      // After that, they shouldn't appear in the shop again.
-      if (item.id === 'buy_explosion_ability' && this.gameState.explosionAbility.getCooldownMax() > 0) return false; // Check if player has 'unlocked' it
-      if (item.id === 'buy_shield_ability' && this.gameState.shieldAbility?.shield.maxHealth > 0) return false; // Check if player has 'unlocked' it
-      if (item.id === 'buy_heal_ability' && this.gameState.healAbility?.getCooldownMax() > 0) return false; // Check if player has 'unlocked' it
+      if (item.id === 'buy_explosion_ability' && this.gameState.explosionAbility) return false;
+      if (item.id === 'buy_shield_ability' && this.gameState.shieldAbility) return false;
+      if (item.id === 'buy_heal_ability' && this.gameState.healAbility) return false;
       return true;
     }), this.gameState.player.gold);
   }
@@ -332,16 +311,15 @@ export class GameEngine {
           this.gameState.homingMissileWeapon = new HomingMissileWeapon(20, 250, 2, 12, 4, this.spriteManager.getSprite('homing_missile'), this.soundManager);
           break;
         case 'buy_explosion_ability':
-          // The ability instance already exists, this purchase just 'unlocks' it for player use.
-          // We can mark it as 'unlocked' by setting a non-zero cooldown or similar.
-          // For now, the presence of the object itself implies it's available.
-          // The filter in openShop will prevent it from showing again.
+          this.gameState.explosionAbility = new ExplosionAbility(50, 150, 5, this.soundManager);
           break;
         case 'buy_shield_ability':
-          // Same as explosion ability
+          this.gameState.shieldAbility = new ShieldAbility(40, 100, 10, 10, this.soundManager);
+          this.gameState.player.setShieldAbility(this.gameState.shieldAbility);
           break;
         case 'buy_heal_ability':
-          // Same as explosion ability
+          this.gameState.healAbility = new HealAbility(30, 15, this.soundManager);
+          this.gameState.player.setHealAbility(this.gameState.healAbility);
           break;
         case 'buy_health_potion':
           this.gameState.player.currentHealth = Math.min(this.gameState.player.maxHealth, this.gameState.player.currentHealth + 50);
@@ -349,15 +327,14 @@ export class GameEngine {
         default:
           console.warn(`Unknown item purchased: ${itemId}`);
       }
-      // Re-open shop with updated items list (filtered out purchased items)
       this.onOpenShopCallback(this.shopItems.filter(i => {
         if (i.id === 'buy_aura_weapon' && this.gameState.auraWeapon) return false;
         if (i.id === 'buy_projectile_weapon' && this.gameState.projectileWeapon) return false;
         if (i.id === 'buy_spinning_blade_weapon' && this.gameState.spinningBladeWeapon) return false;
         if (i.id === 'buy_homing_missile_weapon' && this.gameState.homingMissileWeapon) return false;
-        if (i.id === 'buy_explosion_ability' && this.gameState.explosionAbility.getCooldownMax() > 0) return false;
-        if (i.id === 'buy_shield_ability' && this.gameState.shieldAbility?.shield.maxHealth > 0) return false;
-        if (i.id === 'buy_heal_ability' && this.gameState.healAbility?.getCooldownMax() > 0) return false;
+        if (i.id === 'buy_explosion_ability' && this.gameState.explosionAbility) return false;
+        if (i.id === 'buy_shield_ability' && this.gameState.shieldAbility) return false;
+        if (i.id === 'buy_heal_ability' && this.gameState.healAbility) return false;
         return true;
       }), this.gameState.player.gold);
     } else {
@@ -388,11 +365,6 @@ export class GameEngine {
     const player = new Player(this.worldWidth / 2, this.worldHeight / 2, 30, 200, 'blue', 100, this.triggerLevelUp, undefined, this.soundManager);
     const vendor = new Vendor(this.worldWidth / 2 + 200, this.worldHeight / 2, 50, undefined);
 
-    // Re-initialize abilities for a fresh game
-    const initialExplosionAbility = new ExplosionAbility(50, 150, 5, this.soundManager);
-    const initialShieldAbility = new ShieldAbility(40, 100, 10, 10, this.soundManager);
-    const initialHealAbility = new HealAbility(30, 15, this.soundManager);
-
     const startingWeapons = [
       new AuraWeapon(10, 100, 0.5),
       new ProjectileWeapon(15, 300, 1.5, 8, 3, undefined, this.soundManager),
@@ -401,20 +373,8 @@ export class GameEngine {
     ];
     const initialWeapon = startingWeapons[Math.floor(Math.random() * startingWeapons.length)];
 
-    this.gameState = new GameState(
-      player,
-      vendor,
-      this.worldWidth,
-      this.worldHeight,
-      initialWeapon,
-      initialExplosionAbility,
-      initialShieldAbility,
-      initialHealAbility
-    );
+    this.gameState = new GameState(player, vendor, this.worldWidth, this.worldHeight, initialWeapon);
     
-    this.gameState.player.setShieldAbility(this.gameState.shieldAbility);
-    this.gameState.player.setHealAbility(this.gameState.healAbility);
-
     this.waveManager = new WaveManager(this.gameState, this.spriteManager, this.soundManager);
     this.powerUpManager = new PowerUpManager(this.gameState, this.spriteManager, this.soundManager);
     this.gameOverScreen = new GameOverScreen(this.restartGame, this.ctx.canvas);
@@ -546,8 +506,7 @@ export class GameEngine {
 
     this.gameState.player.update(this.inputHandler, deltaTime, this.gameState.worldWidth, this.gameState.worldHeight);
 
-    // Player can only trigger explosion if the ability is 'unlocked' (e.g., bought from shop)
-    if (this.inputHandler.isPressed('e') && this.gameState.explosionAbility && this.gameState.explosionAbility.getCooldownMax() > 0) {
+    if (this.inputHandler.isPressed('e') && this.gameState.explosionAbility) {
       this.gameState.explosionAbility.triggerExplosion(this.gameState.player.x, this.gameState.player.y);
     }
 
@@ -628,7 +587,7 @@ export class GameEngine {
     this.gameState.projectileWeapon?.update(deltaTime, this.gameState.player.x, this.gameState.player.y, this.gameState.enemies);
     this.gameState.spinningBladeWeapon?.update(deltaTime, this.gameState.player.x, this.gameState.player.y, this.gameState.enemies);
     this.gameState.homingMissileWeapon?.update(deltaTime, this.gameState.player.x, this.gameState.player.y, this.gameState.enemies);
-    this.gameState.explosionAbility?.update(deltaTime, this.gameState.enemies); // Update explosion ability
+    this.gameState.explosionAbility?.update(deltaTime, this.gameState.enemies);
     this.gameState.shieldAbility?.update(deltaTime, this.gameState.player.x, this.gameState.player.y);
     this.gameState.healAbility?.update(deltaTime);
 
@@ -694,7 +653,7 @@ export class GameEngine {
       worldWidth: this.gameState.worldWidth,
       worldHeight: this.gameState.worldHeight,
       cameraX: this.cameraX,
-      cameraY: this.ctx.canvas.height,
+      cameraY: this.cameraY,
       canvasWidth: this.ctx.canvas.width,
       canvasHeight: this.ctx.canvas.height,
       enemiesMinimap: this.gameState.enemies.map(enemy => ({ x: enemy.x, y: enemy.y, size: enemy.size })),
@@ -746,7 +705,7 @@ export class GameEngine {
     this.gameState.projectileWeapon?.draw(this.ctx, this.cameraX, this.cameraY);
     this.gameState.spinningBladeWeapon?.draw(this.ctx, this.cameraX, this.cameraY);
     this.gameState.homingMissileWeapon?.draw(this.ctx, this.cameraX, this.cameraY);
-    this.gameState.explosionAbility?.draw(this.ctx, this.cameraX, this.cameraY); // Draw explosion ability
+    this.gameState.explosionAbility?.draw(this.ctx, this.cameraX, this.cameraY);
 
     this.gameState.experienceGems.forEach(gem => gem.draw(this.ctx, this.cameraX, this.cameraY));
     this.gameState.magnetPowerUps.forEach(magnet => magnet.draw(this.ctx, this.cameraX, this.cameraY));
