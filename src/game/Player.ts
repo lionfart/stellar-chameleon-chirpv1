@@ -12,8 +12,9 @@ export class Player {
   experience: number;
   level: number;
   experienceToNextLevel: number;
+  private onLevelUpCallback: () => void; // New callback property
 
-  constructor(x: number, y: number, size: number, speed: number, color: string, maxHealth: number) {
+  constructor(x: number, y: number, size: number, speed: number, color: string, maxHealth: number, onLevelUp: () => void) {
     this.x = x;
     this.y = y;
     this.size = size;
@@ -24,6 +25,7 @@ export class Player {
     this.experience = 0;
     this.level = 1;
     this.experienceToNextLevel = 100; // Initial experience needed for level 2
+    this.onLevelUpCallback = onLevelUp; // Assign the callback
   }
 
   update(input: InputHandler, deltaTime: number, worldWidth: number, worldHeight: number) {
@@ -101,5 +103,6 @@ export class Player {
     this.currentHealth = this.maxHealth; // Heal to full
     this.speed += 10; // Example: increase speed
     console.log(`Player leveled up to Level ${this.level}!`);
+    this.onLevelUpCallback(); // Trigger the callback to show the level-up screen
   }
 }

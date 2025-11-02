@@ -2,7 +2,7 @@ import { Player } from './Player';
 import { InputHandler } from './InputHandler';
 import { Enemy } from './Enemy';
 import { AuraWeapon } from './AuraWeapon';
-import { ExperienceGem } from './ExperienceGem'; // Import the new gem class
+import { ExperienceGem } from './ExperienceGem';
 import { clamp } from './utils';
 
 export class GameEngine {
@@ -12,11 +12,13 @@ export class GameEngine {
   private lastTime: number;
   private animationFrameId: number | null;
   private enemies: Enemy[];
-  private experienceGems: ExperienceGem[]; // New array for experience gems
+  private experienceGems: ExperienceGem[];
   private enemySpawnTimer: number;
-  private enemySpawnInterval: number = 2; // Spawn an enemy every 2 seconds
+  private enemySpawnInterval: number = 2;
   private auraWeapon: AuraWeapon;
   private gameOver: boolean = false;
+  private isPaused: boolean = false; // New state for pausing
+  private onLevelUpCallback: () => void; // Callback for when player levels up
 
   // World dimensions
   private worldWidth: number = 2000;
@@ -26,20 +28,36 @@ export class GameEngine {
   private cameraX: number = 0;
   private cameraY: number = 0;
 
-  constructor(ctx: CanvasRenderingContext2D) {
+  constructor(ctx: CanvasRenderingContext2D, onLevelUp: () => void) {
     this.ctx = ctx;
     this.inputHandler = new InputHandler();
-    this.player = new Player(this.worldWidth / 2, this.worldHeight / 2, 30, 200, 'blue', 100);
+    this.player = new Player(this.worldWidth / 2, this.worldHeight / 2, 30, 200, 'blue', 100, this.triggerLevelUp); // Pass triggerLevelUp to player
     this.lastTime = 0;
     this.animationFrameId = null;
     this.enemies = [];
-    this.experienceGems = []; // Initialize gems array
+    this.experienceGems = [];
     this.enemySpawnTimer = 0;
     this.auraWeapon = new AuraWeapon(10, 100, 0.5);
+    this.onLevelUpCallback = onLevelUp; // Store the callback
   }
 
   init() {
     this.gameLoop(0);
+  }
+
+  // Method to trigger the level-up UI
+  private triggerLevelUp = () => {
+    this.onLevelUpCallback();
+  };
+
+  pause() {
+    this.isPaused = true;
+  }
+
+  resume() {
+    this.isPaused = false;
+    this.lastTime = performance.now(); // Reset lastTime to prevent large deltaTime after pause
+    this.gameLoop(this.lastTime); // Restart the loop if it was stopped
   }
 
   private spawnEnemy() {
@@ -77,7 +95,7 @@ export class GameEngine {
   }
 
   private update(deltaTime: number) {
-    if (this.gameOver) return;
+    if (this.gameOver || this.isPaused) return; // Don't update if game is over or paused
 
     this.player.update(this.inputHandler, deltaTime, this.worldWidth, this.worldHeight);
 
@@ -103,20 +121,18 @@ export class GameEngine {
 
     this.auraWeapon.update(deltaTime, this.player.x, this.player.y, this.enemies);
 
-    // Filter out defeated enemies and drop experience gems
     const defeatedEnemies = this.enemies.filter(enemy => !enemy.isAlive());
     defeatedEnemies.forEach(enemy => {
-      this.experienceGems.push(new ExperienceGem(enemy.x, enemy.y, 10)); // Each enemy drops 10 XP
+      this.experienceGems.push(new ExperienceGem(enemy.x, enemy.y, 10));
     });
     this.enemies = this.enemies.filter(enemy => enemy.isAlive());
 
-    // Handle experience gem collection
     this.experienceGems = this.experienceGems.filter(gem => {
       if (gem.collidesWith(this.player)) {
         this.player.gainExperience(gem.value);
-        return false; // Remove gem
+        return false;
       }
-      return true; // Keep gem
+      return true;
     });
 
     if (!this.player.isAlive()) {
@@ -142,14 +158,12 @@ export class GameEngine {
 
     this.auraWeapon.draw(this.ctx, this.player.x, this.player.y, this.cameraX, this.cameraY);
 
-    // Draw experience gems
     this.experienceGems.forEach(gem => gem.draw(this.ctx, this.cameraX, this.cameraY));
 
     this.player.draw(this.ctx, this.cameraX, this.cameraY);
 
     this.enemies.forEach(enemy => enemy.draw(this.ctx, this.cameraX, this.cameraY));
 
-    // Draw UI elements
     this.ctx.fillStyle = 'white';
     this.ctx.font = '20px Arial';
     this.ctx.textAlign = 'left';
@@ -171,6 +185,11 @@ export class GameEngine {
   }
 
   private gameLoop = (currentTime: number) => {
+    if (this.isPaused) {
+      this.animationFrameId = requestAnimationFrame(this.gameLoop); // Keep requesting frame even if paused to check for resume
+      return;
+    }
+
     const deltaTime = (currentTime - this.lastTime) / 1000;
     this.lastTime = currentTime;
 
