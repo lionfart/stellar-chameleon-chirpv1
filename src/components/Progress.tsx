@@ -6,13 +6,16 @@ import * as ProgressPrimitive from "@radix-ui/react-progress"
 import { cn } from "@/lib/utils"
 
 interface CustomProgressProps extends React.ComponentPropsWithoutRef<typeof ProgressPrimitive.Root> {
-  indicatorClassName?: string; // New prop for indicator styling
+  indicatorClassName?: string; // Prop for indicator styling
+  showText?: boolean; // New prop to show text inside the progress bar
+  text?: string; // New prop for the text to display
+  isCooldown?: boolean; // New prop to indicate if it's on cooldown
 }
 
 const Progress = React.forwardRef<
   React.ElementRef<typeof ProgressPrimitive.Root>,
   CustomProgressProps
->(({ className, value, indicatorClassName, ...props }, ref) => (
+>(({ className, value, indicatorClassName, showText, text, isCooldown, ...props }, ref) => (
   <ProgressPrimitive.Root
     ref={ref}
     className={cn(
@@ -22,9 +25,18 @@ const Progress = React.forwardRef<
     {...props}
   >
     <ProgressPrimitive.Indicator
-      className={cn("h-full w-full flex-1 transition-all", indicatorClassName || "bg-primary")}
+      className={cn(
+        "h-full w-full flex-1 transition-all",
+        indicatorClassName || "bg-primary",
+        isCooldown && "opacity-50" // Apply opacity when on cooldown
+      )}
       style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
     />
+    {showText && text && (
+      <span className="absolute inset-0 flex items-center justify-center text-xs font-medium text-white z-10">
+        {text}
+      </span>
+    )}
   </ProgressPrimitive.Root>
 ))
 Progress.displayName = ProgressPrimitive.Root.displayName

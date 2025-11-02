@@ -54,6 +54,9 @@ const HUD: React.FC<HUDProps> = ({
   const explosionCooldownPercentage = explosionCooldownMax > 0 ? ((explosionCooldownMax - explosionCooldownCurrent) / explosionCooldownMax) * 100 : 100;
   const shieldAbilityCooldownPercentage = shieldCooldownMax > 0 ? ((shieldCooldownMax - shieldCooldownCurrent) / shieldCooldownMax) * 100 : 100;
 
+  // Cooldown text
+  const getCooldownText = (current: number) => current > 0 ? `${current.toFixed(1)}s` : 'Ready';
+
   return (
     <div className="absolute top-4 left-4 right-4 flex justify-between items-start pointer-events-none z-40">
       {/* Left HUD - Player Stats */}
@@ -101,8 +104,15 @@ const HUD: React.FC<HUDProps> = ({
           <div className="flex items-center space-x-2">
             <Zap className="h-5 w-5 text-purple-500" /> {/* Using Zap for Dash */}
             <div className="flex-1">
-              <Progress value={dashCooldownPercentage} className="h-2" indicatorClassName="bg-purple-500" />
-              <span className="text-xs text-muted-foreground">Dash: {dashCooldownCurrent > 0 ? `${dashCooldownCurrent.toFixed(1)}s` : 'Ready'}</span>
+              <Progress
+                value={dashCooldownPercentage}
+                className="h-4"
+                indicatorClassName="bg-purple-500"
+                showText
+                text={getCooldownText(dashCooldownCurrent)}
+                isCooldown={dashCooldownCurrent > 0}
+              />
+              <span className="text-xs text-muted-foreground">Dash</span>
             </div>
           </div>
 
@@ -110,8 +120,15 @@ const HUD: React.FC<HUDProps> = ({
             <div className="flex items-center space-x-2">
               <Bomb className="h-5 w-5 text-orange-500" />
               <div className="flex-1">
-                <Progress value={explosionCooldownPercentage} className="h-2" indicatorClassName="bg-orange-500" />
-                <span className="text-xs text-muted-foreground">Explosion: {explosionCooldownCurrent > 0 ? `${explosionCooldownCurrent.toFixed(1)}s` : 'Ready'}</span>
+                <Progress
+                  value={explosionCooldownPercentage}
+                  className="h-4"
+                  indicatorClassName="bg-orange-500"
+                  showText
+                  text={getCooldownText(explosionCooldownCurrent)}
+                  isCooldown={explosionCooldownCurrent > 0}
+                />
+                <span className="text-xs text-muted-foreground">Explosion</span>
               </div>
             </div>
           )}
@@ -120,8 +137,15 @@ const HUD: React.FC<HUDProps> = ({
             <div className="flex items-center space-x-2">
               <Shield className="h-5 w-5 text-blue-500" />
               <div className="flex-1">
-                <Progress value={shieldAbilityCooldownPercentage} className="h-2" indicatorClassName="bg-blue-500" />
-                <span className="text-xs text-muted-foreground">Shield Cooldown: {shieldCooldownCurrent > 0 ? `${shieldCooldownCurrent.toFixed(1)}s` : 'Ready'}</span>
+                <Progress
+                  value={shieldAbilityCooldownPercentage}
+                  className="h-4"
+                  indicatorClassName="bg-blue-500"
+                  showText
+                  text={getCooldownText(shieldCooldownCurrent)}
+                  isCooldown={shieldCooldownCurrent > 0}
+                />
+                <span className="text-xs text-muted-foreground">Shield</span>
               </div>
             </div>
           )}
