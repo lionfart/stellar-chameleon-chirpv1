@@ -1,6 +1,5 @@
 import { Shield } from './Shield';
 import { SoundManager } from './SoundManager'; // Import SoundManager
-import { GameEngine } from './GameEngine'; // Import GameEngine
 
 export class ShieldAbility {
   shield: Shield;
@@ -9,9 +8,9 @@ export class ShieldAbility {
   private regenerationRate: number; // health per second
   private soundManager: SoundManager; // New: SoundManager instance
 
-  constructor(initialRadius: number, initialMaxHealth: number, cooldown: number, regenerationRate: number, soundManager: SoundManager, gameEngine: GameEngine) {
+  constructor(initialRadius: number, initialMaxHealth: number, cooldown: number, regenerationRate: number, soundManager: SoundManager) {
     this.soundManager = soundManager; // Assign SoundManager
-    this.shield = new Shield(initialRadius, initialMaxHealth, this.soundManager, gameEngine); // Pass gameEngine to Shield
+    this.shield = new Shield(initialRadius, initialMaxHealth, this.soundManager);
     this.cooldown = cooldown;
     this.currentCooldown = 0;
     this.regenerationRate = regenerationRate;
@@ -38,8 +37,8 @@ export class ShieldAbility {
     }
   }
 
-  draw(ctx: CanvasRenderingContext2D, cameraX: number, cameraY: number, gameEngine: GameEngine) {
-    this.shield.draw(ctx, cameraX, cameraY, gameEngine); // Pass gameEngine to shield draw
+  draw(ctx: CanvasRenderingContext2D, cameraX: number, cameraY: number) {
+    this.shield.draw(ctx, cameraX, cameraY);
   }
 
   activateShield(): boolean {

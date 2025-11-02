@@ -11,9 +11,8 @@ export class Shield {
   isActive: boolean;
   private pulseTimer: number = 0;
   private soundManager: SoundManager;
-  private gameEngine: GameEngine; // New: GameEngine instance
 
-  constructor(radius: number, maxHealth: number, soundManager: SoundManager, gameEngine: GameEngine) {
+  constructor(radius: number, maxHealth: number, soundManager: SoundManager) {
     this.x = 0;
     this.y = 0;
     this.radius = radius;
@@ -22,7 +21,6 @@ export class Shield {
     this.color = 'rgba(0, 191, 255, 0.4)';
     this.isActive = false;
     this.soundManager = soundManager;
-    this.gameEngine = gameEngine; // Assign GameEngine
   }
 
   updatePosition(playerX: number, playerY: number) {
@@ -30,13 +28,13 @@ export class Shield {
     this.y = playerY;
   }
 
-  draw(ctx: CanvasRenderingContext2D, cameraX: number, cameraY: number, gameEngine: GameEngine) {
+  draw(ctx: CanvasRenderingContext2D, cameraX: number, cameraY: number) {
     if (!this.isActive) return;
 
     // Shield is drawn relative to the player's actual position, but its visual scale can be influenced by player's 2.5D scale
     // We'll get player's draw properties to ensure consistency
-    const tempPlayerEntity = { x: this.x, y: this.y, size: this.radius * 2 }; // Use shield's radius * 2 as size for scaling reference
-    const { drawX, drawY, scale, scaledSize } = gameEngine.getDrawProperties(tempPlayerEntity);
+    const tempPlayerEntity = { x: this.x, y: this.y, size: 30 }; // Use player's size as reference
+    const { drawX, drawY, scale, scaledSize } = new GameEngine(ctx, () => {}, () => {}, () => {}, () => {}).getDrawProperties(tempPlayerEntity); // Temporary GameEngine instance to get properties
 
     this.pulseTimer += 0.1;
     const pulseScale = 1 + Math.sin(this.pulseTimer) * 0.05;
@@ -48,31 +46,31 @@ export class Shield {
 
     // Outer glow/fill
     const gradient = ctx.createRadialGradient(
-      drawX - cameraX, drawY - cameraY + (scaledSize - this.radius * 2) / 2, currentRadius * 0.5,
-      drawX - cameraX, drawY - cameraY + (scaledSize - this.radius * 2) / 2, currentRadius
+      drawX - cameraX, drawY - cameraY + scaledSize / 2 - currentRadius / 2, currentRadius * 0.5,
+      drawX - cameraX, drawY - cameraY + scaledSize / 2 - currentRadius / 2, currentRadius
     );
     gradient.addColorStop(0, `rgba(0, 191, 255, ${baseAlpha})`);
     gradient.addColorStop(1, `rgba(0, 191, 255, ${baseAlpha * 0.2})`);
 
     ctx.fillStyle = gradient;
     ctx.beginPath();
-    ctx.arc(drawX - cameraX, drawY - cameraY + (scaledSize - this.radius * 2) / 2, currentRadius, 0, Math.PI * 2);
+    ctx.arc(drawX - cameraX, drawY - cameraY + scaledSize / 2 - currentRadius / 2, currentRadius, 0, Math.PI * 2);
     ctx.fill();
 
     // Stronger outer stroke
     ctx.strokeStyle = `rgba(0, 191, 255, ${strokeAlpha})`;
     ctx.lineWidth = 3 * scale; // Scale line width
     ctx.beginPath();
-    ctx.arc(drawX - cameraX, drawY - cameraY + (scaledSize - this.radius * 2) / 2, currentRadius, 0, Math.PI * 2);
+    ctx.arc(drawX - cameraX, drawY - cameraY + scaledSize / 2 - currentRadius / 2, currentRadius, 0, Math.PI * 2);
     ctx.stroke();
 
     // Draw a small health bar for the shield
     const barWidth = scaledSize * 1.5;
     const barHeight = 3 * scale;
     ctx.fillStyle = 'gray';
-    ctx.fillRect(drawX - cameraX - barWidth / 2, drawY - cameraY + (scaledSize - this.radius * 2) / 2 + currentRadius + 5 * scale, barWidth, barHeight);
+    ctx.fillRect(drawX - cameraX - barWidth / 2, drawY - cameraY + scaledSize / 2 + this.radius * scale + 5 * scale, barWidth, barHeight);
     ctx.fillStyle = 'deepskyblue';
-    ctx.fillRect(drawX - cameraX - barWidth / 2, drawY - cameraY + (scaledSize - this.radius * 2) / 2 + currentRadius + 5 * scale, barWidth * healthPercentage, barHeight);
+    ctx.fillRect(drawX - cameraX - barWidth / 2, drawY - cameraY + scaledSize / 2 + this.radius * scale + 5 * scale, barWidth * healthPercentage, barHeight);
   }
 
   takeDamage(amount: number): number {
