@@ -106,13 +106,13 @@ const HUD: React.FC<HUDProps> = ({
             <div className="flex-1">
               <Progress
                 value={dashCooldownPercentage}
-                className="h-4"
+                className="h-5"
                 indicatorClassName="bg-purple-500"
                 showText
-                text={getCooldownText(dashCooldownCurrent)}
+                text={`Dash: ${getCooldownText(dashCooldownCurrent)}`}
                 isCooldown={dashCooldownCurrent > 0}
               />
-              <span className="text-xs text-muted-foreground">Dash</span>
+              {/* Removed redundant span */}
             </div>
           </div>
 
@@ -122,13 +122,13 @@ const HUD: React.FC<HUDProps> = ({
               <div className="flex-1">
                 <Progress
                   value={explosionCooldownPercentage}
-                  className="h-4"
+                  className="h-5"
                   indicatorClassName="bg-orange-500"
                   showText
-                  text={getCooldownText(explosionCooldownCurrent)}
+                  text={`Explosion: ${getCooldownText(explosionCooldownCurrent)}`}
                   isCooldown={explosionCooldownCurrent > 0}
                 />
-                <span className="text-xs text-muted-foreground">Explosion</span>
+                {/* Removed redundant span */}
               </div>
             </div>
           )}
@@ -139,13 +139,13 @@ const HUD: React.FC<HUDProps> = ({
               <div className="flex-1">
                 <Progress
                   value={shieldAbilityCooldownPercentage}
-                  className="h-4"
+                  className="h-5"
                   indicatorClassName="bg-blue-500"
                   showText
-                  text={getCooldownText(shieldCooldownCurrent)}
+                  text={`Shield: ${getCooldownText(shieldCooldownCurrent)}`}
                   isCooldown={shieldCooldownCurrent > 0}
                 />
-                <span className="text-xs text-muted-foreground">Shield</span>
+                {/* Removed redundant span */}
               </div>
             </div>
           )}
