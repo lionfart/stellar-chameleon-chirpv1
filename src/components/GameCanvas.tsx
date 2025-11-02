@@ -1,14 +1,27 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { GameEngine } from '@/game/GameEngine';
 import LevelUpSelection from './LevelUpSelection';
-import { showSuccess } from '@/utils/toast'; // Import showSuccess
+import ShopScreen from './ShopScreen'; // Import the new ShopScreen component
+import { showSuccess } from '@/utils/toast';
+
+// Define ShopItem interface here as well for type consistency
+interface ShopItem {
+  id: string;
+  name: string;
+  description: string;
+  cost: number;
+  type: 'weapon' | 'ability' | 'consumable';
+}
 
 const GameCanvas: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameEngineRef = useRef<GameEngine | null>(null);
   const [showLevelUpScreen, setShowLevelUpScreen] = useState(false);
   const [currentLevelUpOptions, setCurrentLevelUpOptions] = useState<{ id: string; name: string; description: string }[]>([]);
-  const notificationsShownRef = useRef(false); // Ref to track if notifications have been shown
+  const [showShopScreen, setShowShopScreen] = useState(false); // New state for shop visibility
+  const [currentShopItems, setCurrentShopItems] = useState<ShopItem[]>([]); // New state for shop items
+  const [playerGold, setPlayerGold] = useState(0); // New state for player gold
+  const notificationsShownRef = useRef(false);
 
   const allLevelUpOptions = [
     { id: 'aura_damage', name: 'Increase Aura Damage', description: 'Your aura deals more damage to enemies.' },
@@ -28,7 +41,6 @@ const GameCanvas: React.FC = () => {
   ];
 
   const handleLevelUp = useCallback(() => {
-    // Select 3 random unique options
     const shuffled = [...allLevelUpOptions].sort(() => 0.5 - Math.random());
     setCurrentLevelUpOptions(shuffled.slice(0, 3));
     setShowLevelUpScreen(true);
@@ -36,9 +48,24 @@ const GameCanvas: React.FC = () => {
   }, [allLevelUpOptions]);
 
   const handleSelectUpgrade = useCallback((upgradeId: string) => {
-    gameEngineRef.current?.applyUpgrade(upgradeId); // Apply the upgrade
+    gameEngineRef.current?.applyUpgrade(upgradeId);
     setShowLevelUpScreen(false);
     gameEngineRef.current?.resume();
+  }, []);
+
+  // New callbacks for shop interaction
+  const handleOpenShop = useCallback((items: ShopItem[], gold: number) => { // Modified: Added gold parameter
+    setCurrentShopItems(items);
+    setPlayerGold(gold); // Update player gold state
+    setShowShopScreen(true);
+  }, []);
+
+  const handleCloseShop = useCallback(() => {
+    setShowShopScreen(false);
+  }, []);
+
+  const handlePurchaseItem = useCallback((itemId: string) => {
+    gameEngineRef.current?.purchaseItem(itemId);
   }, []);
 
   useEffect(() => {
@@ -51,15 +78,16 @@ const GameCanvas: React.FC = () => {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    gameEngineRef.current = new GameEngine(ctx, handleLevelUp);
+    // Pass shop callbacks to GameEngine
+    gameEngineRef.current = new GameEngine(ctx, handleLevelUp, handleOpenShop, handleCloseShop);
     gameEngineRef.current.init();
 
-    // Show initial key notifications only once
     if (!notificationsShownRef.current) {
       setTimeout(() => showSuccess("Use W, A, S, D or Arrow Keys to move."), 500);
       setTimeout(() => showSuccess("Press SHIFT to dash and evade enemies."), 2500);
       setTimeout(() => showSuccess("Press Q to activate/deactivate your shield."), 4500);
       setTimeout(() => showSuccess("Press E to trigger an explosion around you."), 6500);
+      setTimeout(() => showSuccess("Find the Vendor (gold '$' icon) and press F to open the shop!"), 8500); // New notification
       notificationsShownRef.current = true;
     }
 
@@ -74,13 +102,21 @@ const GameCanvas: React.FC = () => {
       gameEngineRef.current?.stop();
       window.removeEventListener('resize', handleResize);
     };
-  }, [handleLevelUp]);
+  }, [handleLevelUp, handleOpenShop, handleCloseShop]); // Add shop callbacks to dependencies
 
   return (
     <div className="relative w-full h-full overflow-hidden">
       <canvas ref={canvasRef} className="block bg-black" style={{ width: '100vw', height: '100vh' }} />
       {showLevelUpScreen && (
         <LevelUpSelection onSelectUpgrade={handleSelectUpgrade} options={currentLevelUpOptions} />
+      )}
+      {showShopScreen && (
+        <ShopScreen
+          items={currentShopItems}
+          onPurchase={handlePurchaseItem}
+          onClose={handleCloseShop}
+          playerGold={playerGold} // Pass player gold from state
+        />
       )}
     </div>
   );

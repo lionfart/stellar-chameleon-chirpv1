@@ -6,7 +6,7 @@ import { ProjectileWeapon } from './ProjectileWeapon';
 import { SpinningBladeWeapon } from './SpinningBladeWeapon';
 import { ExplosionAbility } from './ExplosionAbility';
 import { ShieldAbility } from './ShieldAbility';
-import { Vendor } from './Vendor'; // Import Vendor
+import { Vendor } from './Vendor';
 import { clamp } from './utils';
 import { SpriteManager } from './SpriteManager';
 import { SoundManager } from './SoundManager';
@@ -15,6 +15,16 @@ import { WaveManager } from './WaveManager';
 import { PowerUpManager } from './PowerUpManager';
 import { HUD } from './HUD';
 import { GameOverScreen } from './GameOverScreen';
+import { showSuccess, showError } from '@/utils/toast'; // Import toast utilities
+
+// Define shop item types
+interface ShopItem {
+  id: string;
+  name: string;
+  description: string;
+  cost: number;
+  type: 'weapon' | 'ability' | 'consumable';
+}
 
 export class GameEngine {
   private ctx: CanvasRenderingContext2D;
@@ -22,6 +32,8 @@ export class GameEngine {
   private lastTime: number;
   private animationFrameId: number | null;
   private onLevelUpCallback: () => void;
+  private onOpenShopCallback: (items: ShopItem[], playerGold: number) => void; // Modified: Added playerGold
+  private onCloseShopCallback: () => void; // New callback for closing shop
   private spriteManager: SpriteManager;
   private soundManager: SoundManager;
   private assetsLoaded: boolean = false;
@@ -40,24 +52,42 @@ export class GameEngine {
   private cameraX: number = 0;
   private cameraY: number = 0;
 
-  constructor(ctx: CanvasRenderingContext2D, onLevelUp: () => void) {
+  private shopItems: ShopItem[] = [
+    { id: 'buy_aura_weapon', name: 'Aura Weapon', description: 'A constant damage aura around you.', cost: 100, type: 'weapon' },
+    { id: 'buy_projectile_weapon', name: 'Projectile Weapon', description: 'Fires projectiles at the closest enemy.', cost: 100, type: 'weapon' },
+    { id: 'buy_spinning_blade_weapon', name: 'Spinning Blade Weapon', description: 'Blades orbit you, damaging enemies on contact.', cost: 100, type: 'weapon' },
+    { id: 'buy_explosion_ability', name: 'Explosion Ability', description: 'Trigger an explosion around you (E key).', cost: 150, type: 'ability' },
+    { id: 'buy_shield_ability', name: 'Shield Ability', description: 'Activate a protective shield (Q key).', cost: 150, type: 'ability' },
+    { id: 'buy_health_potion', name: 'Health Potion', description: 'Instantly restores 50 health.', cost: 50, type: 'consumable' },
+  ];
+
+  constructor(ctx: CanvasRenderingContext2D, onLevelUp: () => void, onOpenShop: (items: ShopItem[], playerGold: number) => void, onCloseShop: () => void) {
     this.ctx = ctx;
     this.inputHandler = new InputHandler();
     this.onLevelUpCallback = onLevelUp;
+    this.onOpenShopCallback = onOpenShop;
+    this.onCloseShopCallback = onCloseShop;
     this.spriteManager = new SpriteManager(this.onAllAssetsLoaded);
     this.soundManager = new SoundManager(this.onAllAssetsLoaded);
 
-    // Initialize game objects with placeholder sprites/sounds for now, will be updated after assets load
     const player = new Player(this.worldWidth / 2, this.worldHeight / 2, 30, 200, 'blue', 100, this.triggerLevelUp, undefined, this.soundManager);
-    const auraWeapon = new AuraWeapon(10, 100, 0.5);
-    const projectileWeapon = new ProjectileWeapon(15, 300, 1.5, 8, 3, undefined, this.soundManager);
-    const spinningBladeWeapon = new SpinningBladeWeapon(10, 60, 3, 10, 1, undefined, this.soundManager);
-    const explosionAbility = new ExplosionAbility(50, 150, 5, this.soundManager);
-    const shieldAbility = new ShieldAbility(40, 100, 10, 10, this.soundManager);
-    const vendor = new Vendor(this.worldWidth / 2 + 200, this.worldHeight / 2, 50, undefined); // New: Initialize Vendor
-    player.setShieldAbility(shieldAbility);
+    const vendor = new Vendor(this.worldWidth / 2 + 200, this.worldHeight / 2, 50, undefined);
 
-    this.gameState = new GameState(player, auraWeapon, projectileWeapon, spinningBladeWeapon, explosionAbility, shieldAbility, vendor, this.worldWidth, this.worldHeight);
+    // Randomly select one starting weapon
+    const startingWeapons = [
+      new AuraWeapon(10, 100, 0.5),
+      new ProjectileWeapon(15, 300, 1.5, 8, 3, undefined, this.soundManager),
+      new SpinningBladeWeapon(10, 60, 3, 10, 1, undefined, this.soundManager),
+    ];
+    const initialWeapon = startingWeapons[Math.floor(Math.random() * startingWeapons.length)];
+
+    this.gameState = new GameState(player, vendor, this.worldWidth, this.worldHeight, initialWeapon);
+    
+    // If shield ability is acquired, set it on the player
+    if (this.gameState.shieldAbility) {
+      this.gameState.player.setShieldAbility(this.gameState.shieldAbility);
+    }
+
     this.waveManager = new WaveManager(this.gameState, this.spriteManager, this.soundManager);
     this.powerUpManager = new PowerUpManager(this.gameState, this.spriteManager, this.soundManager);
     this.hud = new HUD(this.gameState);
@@ -75,12 +105,12 @@ export class GameEngine {
     this.spriteManager.loadSprite('enemy_normal', SpriteManager.getEnemyNormalSpriteSVG(40));
     this.spriteManager.loadSprite('enemy_fast', SpriteManager.getEnemyFastSpriteSVG(30));
     this.spriteManager.loadSprite('enemy_tanky', SpriteManager.getEnemyTankySpriteSVG(50));
-    this.spriteManager.loadSprite('projectile', SpriteManager.getProjectileSpriteSVG(this.gameState.projectileWeapon.projectileRadius * 2));
-    this.spriteManager.loadSprite('spinning_blade', SpriteManager.getSpinningBladeSpriteSVG(this.gameState.spinningBladeWeapon.bladeRadius * 2));
+    this.spriteManager.loadSprite('projectile', SpriteManager.getProjectileSpriteSVG(this.gameState.projectileWeapon?.projectileRadius ? this.gameState.projectileWeapon.projectileRadius * 2 : 16)); // Use optional chaining
+    this.spriteManager.loadSprite('spinning_blade', SpriteManager.getSpinningBladeSpriteSVG(this.gameState.spinningBladeWeapon?.bladeRadius ? this.gameState.spinningBladeWeapon.bladeRadius * 2 : 20)); // Use optional chaining
     this.spriteManager.loadSprite('experience_gem', SpriteManager.getExperienceGemSpriteSVG(20));
     this.spriteManager.loadSprite('magnet_powerup', SpriteManager.getMagnetPowerUpSpriteSVG(40));
     this.spriteManager.loadSprite('background_tile', SpriteManager.getBackgroundTileSVG(100));
-    this.spriteManager.loadSprite('vendor', SpriteManager.getVendorSpriteSVG(this.gameState.vendor.size * 2)); // New: Load vendor sprite
+    this.spriteManager.loadSprite('vendor', SpriteManager.getVendorSpriteSVG(this.gameState.vendor.size * 2));
 
     // Sounds (using placeholder base64 audio)
     this.soundManager.loadSound('dash', SoundManager.getDashSound());
@@ -102,20 +132,16 @@ export class GameEngine {
       this.assetsLoaded = true;
       console.log("All game assets (sprites and sounds) loaded!");
 
-      // Re-initialize game objects with loaded sprites and soundManager
       this.gameState.player.setSprite(this.spriteManager.getSprite('player'));
-      // this.gameState.player['soundManager'] = this.soundManager; // Direct assignment for now, better to pass in constructor
-      this.gameState.projectileWeapon['projectileSprite'] = this.spriteManager.getSprite('projectile');
-      // this.gameState.projectileWeapon['soundManager'] = this.soundManager;
-      this.gameState.spinningBladeWeapon['bladeSprite'] = this.spriteManager.getSprite('spinning_blade');
-      // this.gameState.spinningBladeWeapon['soundManager'] = this.soundManager;
-      // this.gameState.explosionAbility['soundManager'] = this.soundManager;
-      // this.gameState.shieldAbility['soundManager'] = this.soundManager;
-      // this.gameState.shieldAbility.shield['soundManager'] = this.soundManager;
-      this.gameState.vendor['sprite'] = this.spriteManager.getSprite('vendor'); // New: Assign vendor sprite
+      if (this.gameState.projectileWeapon) {
+        this.gameState.projectileWeapon['projectileSprite'] = this.spriteManager.getSprite('projectile');
+      }
+      if (this.gameState.spinningBladeWeapon) {
+        this.gameState.spinningBladeWeapon['bladeSprite'] = this.spriteManager.getSprite('spinning_blade');
+      }
+      this.gameState.vendor['sprite'] = this.spriteManager.getSprite('vendor');
 
-
-      this.gameLoop(0); // Start the game loop only after assets are loaded
+      this.gameLoop(0);
     }
   };
 
@@ -140,22 +166,94 @@ export class GameEngine {
     this.gameLoop(this.lastTime);
   }
 
+  openShop() {
+    this.gameState.isPaused = true;
+    this.gameState.showShop = true;
+    this.onOpenShopCallback(this.shopItems.filter(item => {
+      // Filter out items player already has
+      if (item.id === 'buy_aura_weapon' && this.gameState.auraWeapon) return false;
+      if (item.id === 'buy_projectile_weapon' && this.gameState.projectileWeapon) return false;
+      if (item.id === 'buy_spinning_blade_weapon' && this.gameState.spinningBladeWeapon) return false;
+      if (item.id === 'buy_explosion_ability' && this.gameState.explosionAbility) return false;
+      if (item.id === 'buy_shield_ability' && this.gameState.shieldAbility) return false;
+      return true;
+    }), this.gameState.player.gold); // Modified: Pass player gold
+  }
+
+  closeShop = () => {
+    this.gameState.showShop = false;
+    this.onCloseShopCallback();
+    this.resume();
+  }
+
+  purchaseItem = (itemId: string) => {
+    const item = this.shopItems.find(i => i.id === itemId);
+    if (!item) {
+      showError("Item not found!");
+      return;
+    }
+
+    if (this.gameState.player.spendGold(item.cost)) {
+      showSuccess(`Purchased ${item.name}!`);
+      switch (itemId) {
+        case 'buy_aura_weapon':
+          this.gameState.auraWeapon = new AuraWeapon(10, 100, 0.5);
+          break;
+        case 'buy_projectile_weapon':
+          this.gameState.projectileWeapon = new ProjectileWeapon(15, 300, 1.5, 8, 3, this.spriteManager.getSprite('projectile'), this.soundManager);
+          break;
+        case 'buy_spinning_blade_weapon':
+          this.gameState.spinningBladeWeapon = new SpinningBladeWeapon(10, 60, 3, 10, 1, this.spriteManager.getSprite('spinning_blade'), this.soundManager);
+          break;
+        case 'buy_explosion_ability':
+          this.gameState.explosionAbility = new ExplosionAbility(50, 150, 5, this.soundManager);
+          break;
+        case 'buy_shield_ability':
+          this.gameState.shieldAbility = new ShieldAbility(40, 100, 10, 10, this.soundManager);
+          this.gameState.player.setShieldAbility(this.gameState.shieldAbility);
+          break;
+        case 'buy_health_potion':
+          this.gameState.player.currentHealth = Math.min(this.gameState.player.maxHealth, this.gameState.player.currentHealth + 50);
+          break;
+        default:
+          console.warn(`Unknown item purchased: ${itemId}`);
+      }
+      this.onOpenShopCallback(this.shopItems.filter(i => { // Refresh shop items after purchase
+        if (i.id === 'buy_aura_weapon' && this.gameState.auraWeapon) return false;
+        if (i.id === 'buy_projectile_weapon' && this.gameState.projectileWeapon) return false;
+        if (i.id === 'buy_spinning_blade_weapon' && this.gameState.spinningBladeWeapon) return false;
+        if (i.id === 'buy_explosion_ability' && this.gameState.explosionAbility) return false;
+        if (i.id === 'buy_shield_ability' && this.gameState.shieldAbility) return false;
+        return true;
+      }), this.gameState.player.gold); // Modified: Pass player gold
+    } else {
+      showError("Not enough gold!");
+    }
+  }
+
   restartGame = () => {
     this.gameState.reset();
     this.waveManager.reset();
     this.powerUpManager.reset();
 
-    // Re-initialize player and abilities to their starting states
-    this.gameState.player = new Player(this.worldWidth / 2, this.worldHeight / 2, 30, 200, 'blue', 100, this.triggerLevelUp, this.spriteManager.getSprite('player'), this.soundManager);
-    this.gameState.auraWeapon = new AuraWeapon(10, 100, 0.5);
-    this.gameState.projectileWeapon = new ProjectileWeapon(15, 300, 1.5, 8, 3, this.spriteManager.getSprite('projectile'), this.soundManager);
-    this.gameState.spinningBladeWeapon = new SpinningBladeWeapon(10, 60, 3, 10, 1, this.spriteManager.getSprite('spinning_blade'), this.soundManager);
-    this.gameState.explosionAbility = new ExplosionAbility(50, 150, 5, this.soundManager);
-    this.gameState.shieldAbility = new ShieldAbility(40, 100, 10, 10, this.soundManager);
-    this.gameState.player.setShieldAbility(this.gameState.shieldAbility);
-    this.gameState.vendor = new Vendor(this.worldWidth / 2 + 200, this.worldHeight / 2, 50, this.spriteManager.getSprite('vendor')); // Re-initialize vendor
+    const player = new Player(this.worldWidth / 2, this.worldHeight / 2, 30, 200, 'blue', 100, this.triggerLevelUp, this.spriteManager.getSprite('player'), this.soundManager);
+    const vendor = new Vendor(this.worldWidth / 2 + 200, this.worldHeight / 2, 50, this.spriteManager.getSprite('vendor'));
 
-    this.gameOverScreen.clearClickListener(); // Clear the old listener
+    // Randomly select one starting weapon for restart
+    const startingWeapons = [
+      new AuraWeapon(10, 100, 0.5),
+      new ProjectileWeapon(15, 300, 1.5, 8, 3, this.spriteManager.getSprite('projectile'), this.soundManager),
+      new SpinningBladeWeapon(10, 60, 3, 10, 1, this.spriteManager.getSprite('spinning_blade'), this.soundManager),
+    ];
+    const initialWeapon = startingWeapons[Math.floor(Math.random() * startingWeapons.length)];
+
+    this.gameState = new GameState(player, vendor, this.worldWidth, this.worldHeight, initialWeapon);
+    
+    if (this.gameState.shieldAbility) {
+      this.gameState.player.setShieldAbility(this.gameState.shieldAbility);
+    }
+
+    this.gameOverScreen.clearClickListener();
     this.lastTime = performance.now();
     this.gameLoop(this.lastTime);
   };
@@ -163,7 +261,7 @@ export class GameEngine {
   applyUpgrade(upgradeId: string) {
     switch (upgradeId) {
       case 'aura_damage':
-        this.gameState.auraWeapon.increaseDamage(5);
+        this.gameState.auraWeapon?.increaseDamage(5); // Use optional chaining
         break;
       case 'player_speed':
         this.gameState.player.increaseSpeed(20);
@@ -172,37 +270,37 @@ export class GameEngine {
         this.gameState.player.increaseMaxHealth(20);
         break;
       case 'projectile_damage':
-        this.gameState.projectileWeapon.increaseDamage(10);
+        this.gameState.projectileWeapon?.increaseDamage(10); // Use optional chaining
         break;
       case 'projectile_fire_rate':
-        this.gameState.projectileWeapon.decreaseFireRate(0.2);
+        this.gameState.projectileWeapon?.decreaseFireRate(0.2); // Use optional chaining
         break;
       case 'dash_cooldown':
         this.gameState.player.reduceDashCooldown(0.3);
         break;
       case 'blade_damage':
-        this.gameState.spinningBladeWeapon.increaseDamage(5);
+        this.gameState.spinningBladeWeapon?.increaseDamage(5); // Use optional chaining
         break;
       case 'add_blade':
-        this.gameState.spinningBladeWeapon.addBlade();
+        this.gameState.spinningBladeWeapon?.addBlade(); // Use optional chaining
         break;
       case 'explosion_damage':
-        this.gameState.explosionAbility.increaseDamage(20);
+        this.gameState.explosionAbility?.increaseDamage(20); // Use optional chaining
         break;
       case 'explosion_cooldown':
-        this.gameState.explosionAbility.reduceCooldown(1);
+        this.gameState.explosionAbility?.reduceCooldown(1); // Use optional chaining
         break;
       case 'explosion_radius':
-        this.gameState.explosionAbility.increaseRadius(20);
+        this.gameState.explosionAbility?.increaseRadius(20); // Use optional chaining
         break;
       case 'shield_health':
-        this.gameState.shieldAbility.increaseMaxHealth(30);
+        this.gameState.shieldAbility?.increaseMaxHealth(30); // Use optional chaining
         break;
       case 'shield_regen':
-        this.gameState.shieldAbility.increaseRegeneration(5);
+        this.gameState.shieldAbility?.increaseRegeneration(5); // Use optional chaining
         break;
       case 'shield_cooldown':
-        this.gameState.shieldAbility.reduceCooldown(1.5);
+        this.gameState.shieldAbility?.reduceCooldown(1.5); // Use optional chaining
         break;
       default:
         console.warn(`Unknown upgrade ID: ${upgradeId}`);
@@ -214,9 +312,14 @@ export class GameEngine {
 
     this.gameState.player.update(this.inputHandler, deltaTime, this.gameState.worldWidth, this.gameState.worldHeight);
 
-    // Trigger explosion if 'e' is pressed
-    if (this.inputHandler.isPressed('e')) {
+    // Trigger explosion if 'e' is pressed and ability exists
+    if (this.inputHandler.isPressed('e') && this.gameState.explosionAbility) {
       this.gameState.explosionAbility.triggerExplosion(this.gameState.player.x, this.gameState.player.y);
+    }
+
+    // Check for vendor interaction
+    if (this.inputHandler.isPressed('f') && this.gameState.vendor.isPlayerInRange(this.gameState.player) && !this.gameState.showShop) {
+      this.openShop();
     }
 
     this.cameraX = this.gameState.player.x - this.ctx.canvas.width / 2;
@@ -236,17 +339,16 @@ export class GameEngine {
       }
     });
 
-    this.gameState.auraWeapon.update(deltaTime, this.gameState.player.x, this.gameState.player.y, this.gameState.enemies);
-    this.gameState.projectileWeapon.update(deltaTime, this.gameState.player.x, this.gameState.player.y, this.gameState.enemies);
-    this.gameState.spinningBladeWeapon.update(deltaTime, this.gameState.player.x, this.gameState.player.y, this.gameState.enemies);
-    this.gameState.explosionAbility.update(deltaTime, this.gameState.enemies);
-    this.gameState.shieldAbility.update(deltaTime, this.gameState.player.x, this.gameState.player.y);
+    this.gameState.auraWeapon?.update(deltaTime, this.gameState.player.x, this.gameState.player.y, this.gameState.enemies); // Use optional chaining
+    this.gameState.projectileWeapon?.update(deltaTime, this.gameState.player.x, this.gameState.player.y, this.gameState.enemies); // Use optional chaining
+    this.gameState.spinningBladeWeapon?.update(deltaTime, this.gameState.player.x, this.gameState.player.y, this.gameState.enemies); // Use optional chaining
+    this.gameState.explosionAbility?.update(deltaTime, this.gameState.enemies); // Use optional chaining
+    this.gameState.shieldAbility?.update(deltaTime, this.gameState.player.x, this.gameState.player.y); // Use optional chaining
 
     const defeatedEnemies = this.gameState.enemies.filter(enemy => !enemy.isAlive());
     defeatedEnemies.forEach(enemy => {
       this.powerUpManager.spawnExperienceGem(enemy.x, enemy.y, 10);
-      this.gameState.player.gainGold(enemy.getGoldDrop()); // Player gains gold from defeated enemy
-      // 10% chance to drop a magnet power-up
+      this.gameState.player.gainGold(enemy.getGoldDrop());
       if (Math.random() < 0.1) {
         this.powerUpManager.spawnMagnetPowerUp(enemy.x, enemy.y);
       }
@@ -274,7 +376,6 @@ export class GameEngine {
 
     this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
 
-    // Draw tiled background
     const backgroundTile = this.spriteManager.getSprite('background_tile');
     if (backgroundTile) {
       const tileWidth = backgroundTile.width;
@@ -292,7 +393,6 @@ export class GameEngine {
       this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
     }
 
-    // Draw world border
     this.ctx.strokeStyle = 'white';
     this.ctx.lineWidth = 2;
     this.ctx.strokeRect(
@@ -302,28 +402,38 @@ export class GameEngine {
       this.gameState.worldHeight
     );
 
-    this.gameState.auraWeapon.draw(this.ctx, this.gameState.player.x, this.gameState.player.y, this.cameraX, this.cameraY);
-    this.gameState.projectileWeapon.draw(this.ctx, this.cameraX, this.cameraY);
-    this.gameState.spinningBladeWeapon.draw(this.ctx, this.cameraX, this.cameraY);
-    this.gameState.explosionAbility.draw(this.ctx, this.cameraX, this.cameraY);
+    this.gameState.auraWeapon?.draw(this.ctx, this.gameState.player.x, this.gameState.player.y, this.cameraX, this.cameraY); // Use optional chaining
+    this.gameState.projectileWeapon?.draw(this.ctx, this.cameraX, this.cameraY); // Use optional chaining
+    this.gameState.spinningBladeWeapon?.draw(this.ctx, this.cameraX, this.cameraY); // Use optional chaining
+    this.gameState.explosionAbility?.draw(this.ctx, this.cameraX, this.cameraY); // Use optional chaining
 
     this.gameState.experienceGems.forEach(gem => gem.draw(this.ctx, this.cameraX, this.cameraY));
     this.gameState.magnetPowerUps.forEach(magnet => magnet.draw(this.ctx, this.cameraX, this.cameraY));
 
     this.gameState.player.draw(this.ctx, this.cameraX, this.cameraY);
-    this.gameState.shieldAbility.draw(this.ctx, this.cameraX, this.cameraY);
+    this.gameState.shieldAbility?.draw(this.ctx, this.cameraX, this.cameraY); // Use optional chaining
 
     this.gameState.enemies.forEach(enemy => enemy.draw(this.ctx, this.cameraX, this.cameraY));
 
-    this.gameState.vendor.draw(this.ctx, this.cameraX, this.cameraY); // New: Draw vendor
+    this.gameState.vendor.draw(this.ctx, this.cameraX, this.cameraY);
 
-    // Draw active magnet radius for visual feedback
     if (this.gameState.activeMagnetRadius > 0) {
-      this.ctx.strokeStyle = 'rgba(173, 216, 230, 0.5)'; // Light blue, semi-transparent
+      this.ctx.strokeStyle = 'rgba(173, 216, 230, 0.5)';
       this.ctx.lineWidth = 2;
       this.ctx.beginPath();
       this.ctx.arc(this.gameState.player.x - this.cameraX, this.gameState.player.y - this.cameraY, this.gameState.activeMagnetRadius, 0, Math.PI * 2);
       this.ctx.stroke();
+    }
+
+    // Display interaction prompt for vendor
+    if (this.gameState.vendor.isPlayerInRange(this.gameState.player) && !this.gameState.showShop) {
+      this.ctx.fillStyle = 'white';
+      this.ctx.font = '24px Arial';
+      this.ctx.textAlign = 'center';
+      this.ctx.shadowColor = 'black';
+      this.ctx.shadowBlur = 5;
+      this.ctx.fillText('Press F to interact with Vendor', this.ctx.canvas.width / 2, this.ctx.canvas.height - 50);
+      this.ctx.shadowColor = 'transparent';
     }
 
     this.hud.draw(this.ctx, this.ctx.canvas.width, this.ctx.canvas.height);
@@ -331,7 +441,7 @@ export class GameEngine {
     if (this.gameState.gameOver) {
       this.gameOverScreen.draw(this.ctx, this.ctx.canvas.width, this.ctx.canvas.height);
     } else {
-      this.gameOverScreen.clearClickListener(); // Ensure no click listener when game is not over
+      this.gameOverScreen.clearClickListener();
     }
   }
 
@@ -355,6 +465,6 @@ export class GameEngine {
       cancelAnimationFrame(this.animationFrameId);
     }
     this.inputHandler.destroy();
-    this.gameOverScreen.clearClickListener(); // Ensure click listener is removed on stop
+    this.gameOverScreen.clearClickListener();
   }
 }

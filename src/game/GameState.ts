@@ -14,11 +14,11 @@ export class GameState {
   enemies: Enemy[];
   experienceGems: ExperienceGem[];
   magnetPowerUps: MagnetPowerUp[];
-  auraWeapon: AuraWeapon;
-  projectileWeapon: ProjectileWeapon;
-  spinningBladeWeapon: SpinningBladeWeapon;
-  explosionAbility: ExplosionAbility;
-  shieldAbility: ShieldAbility;
+  auraWeapon: AuraWeapon | undefined; // Made optional
+  projectileWeapon: ProjectileWeapon | undefined; // Made optional
+  spinningBladeWeapon: SpinningBladeWeapon | undefined; // Made optional
+  explosionAbility: ExplosionAbility | undefined; // Made optional
+  shieldAbility: ShieldAbility | undefined; // Made optional
   vendor: Vendor; // New: Vendor NPC
 
   worldWidth: number;
@@ -30,28 +30,39 @@ export class GameState {
   
   gameOver: boolean;
   isPaused: boolean;
+  showShop: boolean; // New: State to control shop visibility
 
   activeMagnetRadius: number;
   activeMagnetDuration: number;
 
   constructor(
     player: Player,
-    auraWeapon: AuraWeapon,
-    projectileWeapon: ProjectileWeapon,
-    spinningBladeWeapon: SpinningBladeWeapon,
-    explosionAbility: ExplosionAbility,
-    shieldAbility: ShieldAbility,
-    vendor: Vendor, // New: Vendor in constructor
+    vendor: Vendor, // Vendor is always present
     worldWidth: number,
-    worldHeight: number
+    worldHeight: number,
+    initialWeapon?: AuraWeapon | ProjectileWeapon | SpinningBladeWeapon, // Optional initial weapon
+    initialExplosionAbility?: ExplosionAbility, // Optional initial ability
+    initialShieldAbility?: ShieldAbility // Optional initial ability
   ) {
     this.player = player;
-    this.auraWeapon = auraWeapon;
-    this.projectileWeapon = projectileWeapon;
-    this.spinningBladeWeapon = spinningBladeWeapon;
-    this.explosionAbility = explosionAbility;
-    this.shieldAbility = shieldAbility;
     this.vendor = vendor; // Assign vendor
+
+    this.auraWeapon = undefined;
+    this.projectileWeapon = undefined;
+    this.spinningBladeWeapon = undefined;
+    this.explosionAbility = undefined;
+    this.shieldAbility = undefined;
+
+    if (initialWeapon instanceof AuraWeapon) {
+      this.auraWeapon = initialWeapon;
+    } else if (initialWeapon instanceof ProjectileWeapon) {
+      this.projectileWeapon = initialWeapon;
+    } else if (initialWeapon instanceof SpinningBladeWeapon) {
+      this.spinningBladeWeapon = initialWeapon;
+    }
+
+    this.explosionAbility = initialExplosionAbility;
+    this.shieldAbility = initialShieldAbility;
 
     this.enemies = [];
     this.experienceGems = [];
@@ -66,6 +77,7 @@ export class GameState {
 
     this.gameOver = false;
     this.isPaused = false;
+    this.showShop = false; // Initialize shop as not visible
 
     this.activeMagnetRadius = 0;
     this.activeMagnetDuration = 0;
@@ -81,6 +93,7 @@ export class GameState {
     this.waveDuration = 60; // Reset wave duration
     this.gameOver = false;
     this.isPaused = false;
+    this.showShop = false; // Reset shop visibility
     this.activeMagnetRadius = 0;
     this.activeMagnetDuration = 0;
   }
