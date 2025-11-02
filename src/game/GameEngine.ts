@@ -26,6 +26,8 @@ interface ShopItem {
   type: 'weapon' | 'ability' | 'consumable';
 }
 
+const MAX_DELTA_TIME = 1 / 30; // Cap deltaTime at 30 FPS to prevent physics glitches after long pauses
+
 export class GameEngine {
   private ctx: CanvasRenderingContext2D;
   private inputHandler: InputHandler;
@@ -316,6 +318,9 @@ export class GameEngine {
     // If the game is paused (e.g., shop is open), or game is over, or assets are not loaded, do not update game logic.
     if (this.gameState.gameOver || this.gameState.isPaused || !this.assetsLoaded) return;
 
+    // Cap deltaTime to prevent physics glitches after long pauses
+    deltaTime = Math.min(deltaTime, MAX_DELTA_TIME);
+
     console.log("GameEngine: Updating with deltaTime:", deltaTime); // Debug log for deltaTime
 
     this.gameState.player.update(this.inputHandler, deltaTime, this.gameState.worldWidth, this.gameState.worldHeight);
@@ -461,8 +466,11 @@ export class GameEngine {
       return;
     }
 
-    const deltaTime = (currentTime - this.lastTime) / 1000;
+    let deltaTime = (currentTime - this.lastTime) / 1000;
     this.lastTime = currentTime;
+
+    // Cap deltaTime to prevent physics glitches after long pauses
+    deltaTime = Math.min(deltaTime, MAX_DELTA_TIME);
 
     this.update(deltaTime);
     this.draw();
