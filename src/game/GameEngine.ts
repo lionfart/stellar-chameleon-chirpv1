@@ -21,6 +21,7 @@ import { DamageNumber } from './DamageNumber';
 import { ShooterEnemy } from './ShooterEnemy';
 import { Boss } from './Boss'; // Import Boss
 import { BossWarning } from './BossWarning'; // Import BossWarning
+import { BossAttackVisual } from './BossAttackVisual'; // Import BossAttackVisual
 import { showSuccess, showError } from '@/utils/toast';
 
 // Define shop item types
@@ -154,7 +155,7 @@ export class GameEngine {
 
     this.gameState = new GameState(player, vendor, this.worldWidth, this.worldHeight, initialWeapon);
     
-    this.waveManager = new WaveManager(this.gameState, this.spriteManager, this.soundManager);
+    this.waveManager = new WaveManager(this.gameState, this.spriteManager, this.soundManager, this.addBossAttackVisual);
     this.powerUpManager = new PowerUpManager(this.gameState, this.spriteManager, this.soundManager);
     this.gameOverScreen = new GameOverScreen(this.restartGame, this.ctx.canvas);
     this.gameWinScreen = new GameWinScreen(this.restartGame, this.ctx.canvas); // Initialize GameWinScreen
@@ -247,6 +248,11 @@ export class GameEngine {
   // Callback for enemies to report damage taken
   private handleEnemyTakeDamage = (x: number, y: number, damage: number) => {
     this.gameState.damageNumbers.push(new DamageNumber(x, y, damage));
+  };
+
+  // New method to add boss attack visuals
+  private addBossAttackVisual = (visual: BossAttackVisual) => {
+    this.gameState.activeBossAttackVisuals.push(visual);
   };
 
   pause() {
@@ -383,7 +389,7 @@ export class GameEngine {
 
     this.gameState = new GameState(player, vendor, this.worldWidth, this.worldHeight, initialWeapon);
     
-    this.waveManager = new WaveManager(this.gameState, this.spriteManager, this.soundManager);
+    this.waveManager = new WaveManager(this.gameState, this.spriteManager, this.soundManager, this.addBossAttackVisual);
     this.powerUpManager = new PowerUpManager(this.gameState, this.spriteManager, this.soundManager);
     this.gameOverScreen = new GameOverScreen(this.restartGame, this.ctx.canvas);
     this.gameWinScreen = new GameWinScreen(this.restartGame, this.ctx.canvas); // Re-initialize GameWinScreen
@@ -585,6 +591,9 @@ export class GameEngine {
     // Update and filter damage numbers
     this.gameState.damageNumbers = this.gameState.damageNumbers.filter(dn => dn.update(deltaTime));
 
+    // Update and filter boss attack visuals
+    this.gameState.activeBossAttackVisuals = this.gameState.activeBossAttackVisuals.filter(visual => visual.update(deltaTime));
+
     this.gameState.enemies.forEach(enemy => {
       if (this.gameState.player.collidesWith(enemy)) {
         this.gameState.player.takeDamage(5);
@@ -727,6 +736,9 @@ export class GameEngine {
 
     // Draw damage numbers
     this.gameState.damageNumbers.forEach(dn => dn.draw(this.ctx, this.cameraX, this.cameraY));
+
+    // Draw boss attack visuals
+    this.gameState.activeBossAttackVisuals.forEach(visual => visual.draw(this.ctx, this.cameraX, this.cameraY));
 
     if (this.gameState.activeMagnetRadius > 0) {
       this.ctx.strokeStyle = 'rgba(173, 216, 230, 0.5)';

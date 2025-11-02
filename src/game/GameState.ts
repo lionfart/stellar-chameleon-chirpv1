@@ -13,6 +13,7 @@ import { DamageNumber } from './DamageNumber';
 import { HealAbility } from './HealAbility';
 import { Boss } from './Boss'; // Import Boss
 import { BossWarning } from './BossWarning'; // Import BossWarning
+import { BossAttackVisual } from './BossAttackVisual'; // Import BossAttackVisual
 
 export class GameState {
   player: Player;
@@ -31,6 +32,7 @@ export class GameState {
   currentBoss: Boss | undefined; // New: Current active boss
   bossWarning: BossWarning | undefined; // New: Boss warning instance
   isBossWarningActive: boolean; // New: Flag to indicate if boss warning is active
+  activeBossAttackVisuals: BossAttackVisual[]; // New: For boss attack visualizations
 
   worldWidth: number;
   worldHeight: number;
@@ -71,7 +73,7 @@ export class GameState {
     this.spinningBladeWeapon = undefined;
     this.homingMissileWeapon = undefined;
     this.explosionAbility = undefined;
-    this.shieldAbility = undefined;
+    this.shieldAbility = initialShieldAbility;
     this.healAbility = initialHealAbility;
 
     if (initialWeapon instanceof AuraWeapon) {
@@ -94,6 +96,7 @@ export class GameState {
     this.currentBoss = undefined; // Initialize currentBoss
     this.bossWarning = undefined; // Initialize boss warning
     this.isBossWarningActive = false; // Initialize boss warning flag
+    this.activeBossAttackVisuals = []; // Initialize activeBossAttackVisuals
 
     this.worldWidth = worldWidth;
     this.worldHeight = worldHeight;
@@ -118,6 +121,7 @@ export class GameState {
     this.currentBoss = undefined; // Reset currentBoss
     this.bossWarning = undefined; // Reset boss warning
     this.isBossWarningActive = false; // Reset boss warning flag
+    this.activeBossAttackVisuals = []; // Reset activeBossAttackVisuals
     this.waveNumber = 1;
     this.waveTimeElapsed = 0;
     this.enemySpawnInterval = 2;

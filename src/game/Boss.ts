@@ -2,6 +2,7 @@ import { Enemy } from './Enemy';
 import { Player } from './Player';
 import { SoundManager } from './SoundManager';
 import { DamageNumber } from './DamageNumber';
+import { BossAttackVisual } from './BossAttackVisual'; // Import BossAttackVisual
 
 export class Boss extends Enemy {
   private bossName: string;
@@ -9,6 +10,7 @@ export class Boss extends Enemy {
   private phaseThresholds: number[]; // Health percentages to trigger phases
   private specialAttackCooldown: number;
   private currentSpecialAttackCooldown: number;
+  private onAddBossAttackVisual: (visual: BossAttackVisual) => void; // New: Callback for visual effects
 
   constructor(
     x: number, y: number, size: number, speed: number, color: string, maxHealth: number,
@@ -16,7 +18,8 @@ export class Boss extends Enemy {
     onTakeDamage: (x: number, y: number, damage: number) => void,
     bossName: string = "Mega Enemy",
     phaseThresholds: number[] = [0.75, 0.5, 0.25], // Example: 75%, 50%, 25% health
-    specialAttackCooldown: number = 5 // seconds
+    specialAttackCooldown: number = 5, // seconds
+    onAddBossAttackVisual: (visual: BossAttackVisual) => void // New parameter
   ) {
     super(x, y, size, speed, color, maxHealth, sprite, soundManager, goldDrop, onTakeDamage);
     this.bossName = bossName;
@@ -24,6 +27,7 @@ export class Boss extends Enemy {
     this.phaseThresholds = phaseThresholds.sort((a, b) => b - a); // Sort descending
     this.specialAttackCooldown = specialAttackCooldown;
     this.currentSpecialAttackCooldown = specialAttackCooldown;
+    this.onAddBossAttackVisual = onAddBossAttackVisual; // Assign the callback
     console.log(`Boss ${this.bossName} spawned! Health: ${this.maxHealth}`);
   }
 
@@ -102,8 +106,11 @@ export class Boss extends Enemy {
     const attackRadius = this.size * 2;
     const attackDamage = 20 + this.phase * 5; // Damage scales with phase
 
+    // Trigger visual effect for the attack area
+    this.onAddBossAttackVisual(new BossAttackVisual(this.x, this.y, attackRadius, 0.5, 'red'));
+
     const dx = player.x - this.x;
-    const dy = player.y - player.y; // Should be player.y - this.y
+    const dy = player.y - this.y;
     const distance = Math.sqrt(dx * dx + dy * dy);
 
     if (distance < attackRadius + player.size / 2) {

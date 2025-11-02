@@ -6,6 +6,7 @@ import { ShooterEnemy } from './ShooterEnemy';
 import { Boss } from './Boss'; // Import Boss
 import { BossWarning } from './BossWarning'; // Import BossWarning
 import { clamp } from './utils';
+import { BossAttackVisual } from './BossAttackVisual'; // Import BossAttackVisual
 
 export class WaveManager {
   private gameState: GameState;
@@ -16,12 +17,14 @@ export class WaveManager {
   private bossWaveInterval: number = 3; // Spawn a boss every 3 waves
   private bossSpawnLocation: { x: number, y: number } | null = null;
   private bossSpawnCorner: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | null = null;
+  private onAddBossAttackVisual: (visual: BossAttackVisual) => void; // New property
 
-  constructor(gameState: GameState, spriteManager: SpriteManager, soundManager: SoundManager) {
+  constructor(gameState: GameState, spriteManager: SpriteManager, soundManager: SoundManager, onAddBossAttackVisual: (visual: BossAttackVisual) => void) {
     this.gameState = gameState;
     this.spriteManager = spriteManager;
     this.soundManager = soundManager;
     this.enemySpawnTimer = 0;
+    this.onAddBossAttackVisual = onAddBossAttackVisual; // Assign new parameter
   }
 
   update(deltaTime: number, cameraX: number, cameraY: number, canvasWidth: number, canvasHeight: number) {
@@ -137,7 +140,10 @@ export class WaveManager {
     this.gameState.currentBoss = new Boss(
       this.bossSpawnLocation.x, this.bossSpawnLocation.y, bossSize, bossSpeed, 'red', bossHealth,
       bossSprite, this.soundManager, bossGold, this.gameState.damageNumbers.push.bind(this.gameState.damageNumbers),
-      bossName
+      bossName, // Existing 11th argument
+      undefined, // phaseThresholds (using default)
+      undefined, // specialAttackCooldown (using default)
+      this.onAddBossAttackVisual // Pass the new callback
     );
     this.gameState.enemies.push(this.gameState.currentBoss);
     console.log(`BOSS SPAWNED: ${bossName} at (${this.bossSpawnLocation.x.toFixed(0)}, ${this.bossSpawnLocation.y.toFixed(0)})!`);
