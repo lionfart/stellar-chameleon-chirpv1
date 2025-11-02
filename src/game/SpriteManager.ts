@@ -220,10 +220,22 @@ export class SpriteManager {
   static getBackgroundTileSVG(size: number): string {
     return `
       <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
-        <rect width="${size}" height="${size}" fill="#1a1a1a"/>
-        <line x1="0" y1="0" x2="${size}" y2="${size}" stroke="#333" stroke-width="1"/>
-        <line x1="0" y1="${size}" x2="${size}" y2="0" stroke="#333" stroke-width="1"/>
-        <circle cx="${size / 2}" cy="${size / 2}" r="2" fill="#444"/>
+        <defs>
+          <pattern id="grid" width="${size / 5}" height="${size / 5}" patternUnits="userSpaceOnUse">
+            <circle cx="1" cy="1" r="0.5" fill="#333"/>
+          </pattern>
+          <filter id="f1" x="0" y="0" width="200%" height="200%">
+            <feOffset result="offOut" in="SourceGraphic" dx="2" dy="2" />
+            <feGaussianBlur result="blurOut" in="offOut" stdDeviation="1" />
+            <feBlend in="SourceGraphic" in2="blurOut" mode="normal" />
+          </filter>
+        </defs>
+        <rect width="${size}" height="${size}" fill="#222"/>
+        <rect width="${size}" height="${size}" fill="url(#grid)" opacity="0.1"/>
+        <circle cx="${size / 4}" cy="${size / 4}" r="${size / 8}" fill="#444" opacity="0.7" filter="url(#f1)"/>
+        <circle cx="${size * 3 / 4}" cy="${size / 2}" r="${size / 6}" fill="#444" opacity="0.6" filter="url(#f1)"/>
+        <rect x="${size / 2}" y="${size / 8}" width="${size / 6}" height="${size / 10}" fill="#444" opacity="0.5" transform="rotate(15 ${size / 2} ${size / 8})" filter="url(#f1)"/>
+        <path d="M${size * 0.1} ${size * 0.9} Q${size * 0.3} ${size * 0.7} ${size * 0.5} ${size * 0.9} T${size * 0.9} ${size * 0.7}" stroke="#555" stroke-width="1" fill="none" opacity="0.4"/>
       </svg>
     `;
   }
