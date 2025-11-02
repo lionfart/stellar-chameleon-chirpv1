@@ -51,8 +51,8 @@ const GameCanvas: React.FC = () => {
     { id: 'projectile_damage', name: 'Increase Projectile Damage', description: 'Your projectiles deal more damage.' },
     { id: 'projectile_fire_rate', name: 'Increase Projectile Fire Rate', description: 'Your projectiles fire more frequently.' },
     { id: 'dash_cooldown', name: 'Reduce Dash Cooldown', description: 'Dash more often to evade enemies.' },
-    { id: 'blade_damage', name: 'Increase Blade Damage', description: 'Your spinning blades deal more damage.' }, // New upgrade
-    { id: 'add_blade', name: 'Add Spinning Blade', description: 'Add another blade to orbit you, increasing coverage.' }, // New upgrade
+    { id: 'blade_damage', name: 'Increase Blade Damage', description: 'Your spinning blades deal more damage.' },
+    { id: 'add_blade', name: 'Add Spinning Blade', description: 'Add another blade to orbit you, increasing coverage.' },
   ];
 
   return (
