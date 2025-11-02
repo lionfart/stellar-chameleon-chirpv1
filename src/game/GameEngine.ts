@@ -6,6 +6,7 @@ import { ProjectileWeapon } from './ProjectileWeapon';
 import { SpinningBladeWeapon } from './SpinningBladeWeapon';
 import { ExplosionAbility } from './ExplosionAbility';
 import { ShieldAbility } from './ShieldAbility';
+import { Vendor } from './Vendor'; // Import Vendor
 import { clamp } from './utils';
 import { SpriteManager } from './SpriteManager';
 import { SoundManager } from './SoundManager';
@@ -47,15 +48,16 @@ export class GameEngine {
     this.soundManager = new SoundManager(this.onAllAssetsLoaded);
 
     // Initialize game objects with placeholder sprites/sounds for now, will be updated after assets load
-    const player = new Player(this.worldWidth / 2, this.worldHeight / 2, 30, 200, 'blue', 100, this.triggerLevelUp, undefined, undefined);
+    const player = new Player(this.worldWidth / 2, this.worldHeight / 2, 30, 200, 'blue', 100, this.triggerLevelUp, undefined, this.soundManager);
     const auraWeapon = new AuraWeapon(10, 100, 0.5);
-    const projectileWeapon = new ProjectileWeapon(15, 300, 1.5, 8, 3, undefined, undefined);
-    const spinningBladeWeapon = new SpinningBladeWeapon(10, 60, 3, 10, 1, undefined, undefined);
-    const explosionAbility = new ExplosionAbility(50, 150, 5, undefined);
-    const shieldAbility = new ShieldAbility(40, 100, 10, 10, undefined);
+    const projectileWeapon = new ProjectileWeapon(15, 300, 1.5, 8, 3, undefined, this.soundManager);
+    const spinningBladeWeapon = new SpinningBladeWeapon(10, 60, 3, 10, 1, undefined, this.soundManager);
+    const explosionAbility = new ExplosionAbility(50, 150, 5, this.soundManager);
+    const shieldAbility = new ShieldAbility(40, 100, 10, 10, this.soundManager);
+    const vendor = new Vendor(this.worldWidth / 2 + 200, this.worldHeight / 2, 50, undefined); // New: Initialize Vendor
     player.setShieldAbility(shieldAbility);
 
-    this.gameState = new GameState(player, auraWeapon, projectileWeapon, spinningBladeWeapon, explosionAbility, shieldAbility, this.worldWidth, this.worldHeight);
+    this.gameState = new GameState(player, auraWeapon, projectileWeapon, spinningBladeWeapon, explosionAbility, shieldAbility, vendor, this.worldWidth, this.worldHeight);
     this.waveManager = new WaveManager(this.gameState, this.spriteManager, this.soundManager);
     this.powerUpManager = new PowerUpManager(this.gameState, this.spriteManager, this.soundManager);
     this.hud = new HUD(this.gameState);
@@ -78,6 +80,7 @@ export class GameEngine {
     this.spriteManager.loadSprite('experience_gem', SpriteManager.getExperienceGemSpriteSVG(20));
     this.spriteManager.loadSprite('magnet_powerup', SpriteManager.getMagnetPowerUpSpriteSVG(40));
     this.spriteManager.loadSprite('background_tile', SpriteManager.getBackgroundTileSVG(100));
+    this.spriteManager.loadSprite('vendor', SpriteManager.getVendorSpriteSVG(this.gameState.vendor.size * 2)); // New: Load vendor sprite
 
     // Sounds (using placeholder base64 audio)
     this.soundManager.loadSound('dash', SoundManager.getDashSound());
@@ -101,14 +104,15 @@ export class GameEngine {
 
       // Re-initialize game objects with loaded sprites and soundManager
       this.gameState.player.setSprite(this.spriteManager.getSprite('player'));
-      this.gameState.player['soundManager'] = this.soundManager; // Direct assignment for now, better to pass in constructor
+      // this.gameState.player['soundManager'] = this.soundManager; // Direct assignment for now, better to pass in constructor
       this.gameState.projectileWeapon['projectileSprite'] = this.spriteManager.getSprite('projectile');
-      this.gameState.projectileWeapon['soundManager'] = this.soundManager;
+      // this.gameState.projectileWeapon['soundManager'] = this.soundManager;
       this.gameState.spinningBladeWeapon['bladeSprite'] = this.spriteManager.getSprite('spinning_blade');
-      this.gameState.spinningBladeWeapon['soundManager'] = this.soundManager;
-      this.gameState.explosionAbility['soundManager'] = this.soundManager;
-      this.gameState.shieldAbility['soundManager'] = this.soundManager;
-      this.gameState.shieldAbility.shield['soundManager'] = this.soundManager;
+      // this.gameState.spinningBladeWeapon['soundManager'] = this.soundManager;
+      // this.gameState.explosionAbility['soundManager'] = this.soundManager;
+      // this.gameState.shieldAbility['soundManager'] = this.soundManager;
+      // this.gameState.shieldAbility.shield['soundManager'] = this.soundManager;
+      this.gameState.vendor['sprite'] = this.spriteManager.getSprite('vendor'); // New: Assign vendor sprite
 
 
       this.gameLoop(0); // Start the game loop only after assets are loaded
@@ -149,6 +153,7 @@ export class GameEngine {
     this.gameState.explosionAbility = new ExplosionAbility(50, 150, 5, this.soundManager);
     this.gameState.shieldAbility = new ShieldAbility(40, 100, 10, 10, this.soundManager);
     this.gameState.player.setShieldAbility(this.gameState.shieldAbility);
+    this.gameState.vendor = new Vendor(this.worldWidth / 2 + 200, this.worldHeight / 2, 50, this.spriteManager.getSprite('vendor')); // Re-initialize vendor
 
     this.gameOverScreen.clearClickListener(); // Clear the old listener
     this.lastTime = performance.now();
@@ -238,8 +243,9 @@ export class GameEngine {
     this.gameState.shieldAbility.update(deltaTime, this.gameState.player.x, this.gameState.player.y);
 
     const defeatedEnemies = this.gameState.enemies.filter(enemy => !enemy.isAlive());
-    defeatedEnemies.forEach(enemy => { // Fixed typo here
+    defeatedEnemies.forEach(enemy => {
       this.powerUpManager.spawnExperienceGem(enemy.x, enemy.y, 10);
+      this.gameState.player.gainGold(enemy.getGoldDrop()); // Player gains gold from defeated enemy
       // 10% chance to drop a magnet power-up
       if (Math.random() < 0.1) {
         this.powerUpManager.spawnMagnetPowerUp(enemy.x, enemy.y);
@@ -308,6 +314,8 @@ export class GameEngine {
     this.gameState.shieldAbility.draw(this.ctx, this.cameraX, this.cameraY);
 
     this.gameState.enemies.forEach(enemy => enemy.draw(this.ctx, this.cameraX, this.cameraY));
+
+    this.gameState.vendor.draw(this.ctx, this.cameraX, this.cameraY); // New: Draw vendor
 
     // Draw active magnet radius for visual feedback
     if (this.gameState.activeMagnetRadius > 0) {

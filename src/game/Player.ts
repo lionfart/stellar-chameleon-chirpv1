@@ -14,6 +14,7 @@ export class Player {
   experience: number;
   level: number;
   experienceToNextLevel: number;
+  gold: number; // New: Gold currency
   private onLevelUpCallback: () => void;
   private shieldAbility: ShieldAbility | null = null;
   private sprite: HTMLImageElement | undefined;
@@ -40,6 +41,7 @@ export class Player {
     this.experience = 0;
     this.level = 1;
     this.experienceToNextLevel = 100;
+    this.gold = 0; // Initialize gold
     this.onLevelUpCallback = onLevelUp;
     this.sprite = sprite;
     this.soundManager = soundManager; // Assign SoundManager
@@ -208,6 +210,21 @@ export class Player {
     this.onLevelUpCallback(); // Trigger the callback to show the level-up screen and play sound
   }
 
+  gainGold(amount: number) {
+    this.gold += amount;
+    console.log(`Player gained ${amount} gold. Total: ${this.gold}`);
+  }
+
+  spendGold(amount: number): boolean {
+    if (this.gold >= amount) {
+      this.gold -= amount;
+      console.log(`Player spent ${amount} gold. Remaining: ${this.gold}`);
+      return true;
+    }
+    console.log(`Not enough gold to spend ${amount}. Current: ${this.gold}`);
+    return false;
+  }
+
   increaseSpeed(amount: number) {
     this.speed += amount;
     console.log(`Player speed increased to ${this.speed}`);
@@ -221,6 +238,7 @@ export class Player {
 
   reduceDashCooldown(amount: number) {
     this.dashCooldown = Math.max(0.5, this.dashCooldown - amount);
+    this.currentDashCooldown = Math.min(this.currentDashCooldown, this.dashCooldown); // Adjust current cooldown if it's higher
     console.log(`Dash cooldown reduced to ${this.dashCooldown} seconds`);
   }
 }

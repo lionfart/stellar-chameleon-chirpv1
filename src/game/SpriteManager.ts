@@ -176,4 +176,21 @@ export class SpriteManager {
       </svg>
     `;
   }
+
+  static getVendorSpriteSVG(size: number): string {
+    return `
+      <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="vendorGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#FFD700" />
+            <stop offset="100%" stop-color="#DAA520" />
+          </linearGradient>
+        </defs>
+        <rect x="${size * 0.1}" y="${size * 0.3}" width="${size * 0.8}" height="${size * 0.6}" rx="${size * 0.1}" ry="${size * 0.1}" fill="url(#vendorGradient)" stroke="#B8860B" stroke-width="2"/>
+        <circle cx="${size / 2}" cy="${size * 0.25}" r="${size * 0.2}" fill="#8B4513" stroke="#5A2D0A" stroke-width="2"/>
+        <path d="M${size * 0.4},${size * 0.25} L${size * 0.6},${size * 0.25} M${size / 2},${size * 0.15} L${size / 2},${size * 0.35}" stroke="#FFFFFF" stroke-width="2"/>
+        <text x="${size / 2}" y="${size * 0.7}" font-family="Arial" font-size="${size * 0.25}" fill="#FFFFFF" text-anchor="middle" alignment-baseline="middle">$</text>
+      </svg>
+    `;
+  }
 }

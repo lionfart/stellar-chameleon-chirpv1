@@ -12,8 +12,9 @@ export class Enemy {
   private sprite: HTMLImageElement | undefined;
   private soundManager: SoundManager; // New: SoundManager instance
   private hitTimer: number = 0; // For hit animation
+  private goldDrop: number; // New: Gold amount this enemy drops
 
-  constructor(x: number, y: number, size: number, speed: number, color: string, maxHealth: number, sprite: HTMLImageElement | undefined, soundManager: SoundManager) {
+  constructor(x: number, y: number, size: number, speed: number, color: string, maxHealth: number, sprite: HTMLImageElement | undefined, soundManager: SoundManager, goldDrop: number = 0) {
     this.x = x;
     this.y = y;
     this.size = size;
@@ -23,6 +24,7 @@ export class Enemy {
     this.currentHealth = maxHealth;
     this.sprite = sprite;
     this.soundManager = soundManager; // Assign SoundManager
+    this.goldDrop = goldDrop; // Assign gold drop
   }
 
   update(deltaTime: number, player: Player) {
@@ -94,6 +96,10 @@ export class Enemy {
 
   isAlive(): boolean {
     return this.currentHealth > 0;
+  }
+
+  getGoldDrop(): number {
+    return this.goldDrop;
   }
 
   collidesWith(other: { x: number; y: number; size: number }): boolean {

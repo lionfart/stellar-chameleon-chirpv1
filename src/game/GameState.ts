@@ -7,6 +7,7 @@ import { ProjectileWeapon } from './ProjectileWeapon';
 import { SpinningBladeWeapon } from './SpinningBladeWeapon';
 import { ExplosionAbility } from './ExplosionAbility';
 import { ShieldAbility } from './ShieldAbility';
+import { Vendor } from './Vendor'; // Import Vendor
 
 export class GameState {
   player: Player;
@@ -18,6 +19,7 @@ export class GameState {
   spinningBladeWeapon: SpinningBladeWeapon;
   explosionAbility: ExplosionAbility;
   shieldAbility: ShieldAbility;
+  vendor: Vendor; // New: Vendor NPC
 
   worldWidth: number;
   worldHeight: number;
@@ -39,6 +41,7 @@ export class GameState {
     spinningBladeWeapon: SpinningBladeWeapon,
     explosionAbility: ExplosionAbility,
     shieldAbility: ShieldAbility,
+    vendor: Vendor, // New: Vendor in constructor
     worldWidth: number,
     worldHeight: number
   ) {
@@ -48,6 +51,7 @@ export class GameState {
     this.spinningBladeWeapon = spinningBladeWeapon;
     this.explosionAbility = explosionAbility;
     this.shieldAbility = shieldAbility;
+    this.vendor = vendor; // Assign vendor
 
     this.enemies = [];
     this.experienceGems = [];
