@@ -4,38 +4,39 @@ export class MagnetPowerUp {
   x: number;
   y: number;
   size: number;
-  duration: number; // How long the magnet effect lasts in seconds
-  radius: number; // How far the magnet pulls gems
+  duration: number;
+  radius: number;
   color: string;
   private currentDuration: number;
+  private sprite: HTMLImageElement | undefined; // New: Magnet sprite
 
-  constructor(x: number, y: number, duration: number = 5, radius: number = 300) {
+  constructor(x: number, y: number, duration: number = 5, radius: number = 300, sprite: HTMLImageElement | undefined) {
     this.x = x;
     this.y = y;
-    this.size = 20; // Size of the magnet pickup
+    this.size = 20;
     this.duration = duration;
     this.radius = radius;
-    this.color = 'lightblue'; // Color of the magnet pickup
+    this.color = 'lightblue';
     this.currentDuration = duration;
+    this.sprite = sprite;
   }
 
   update(deltaTime: number): boolean {
     this.currentDuration -= deltaTime;
-    return this.currentDuration > 0; // Return true if still active
+    return this.currentDuration > 0;
   }
 
   draw(ctx: CanvasRenderingContext2D, cameraX: number, cameraY: number) {
-    ctx.fillStyle = this.color;
-    ctx.beginPath();
-    ctx.arc(this.x - cameraX, this.y - cameraY, this.size / 2, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Draw a pulsing effect for the magnet field when active (optional, for visual feedback)
-    // This draw method is for the pickup itself, not the active effect.
-    // The active effect will be handled in GameEngine.
+    if (this.sprite) {
+      ctx.drawImage(this.sprite, this.x - cameraX - this.size / 2, this.y - cameraY - this.size / 2, this.size, this.size);
+    } else {
+      ctx.fillStyle = this.color;
+      ctx.beginPath();
+      ctx.arc(this.x - cameraX, this.y - cameraY, this.size / 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
   }
 
-  // Basic collision check with another circle (e.g., player)
   collidesWith(other: { x: number; y: number; size: number }): boolean {
     const dx = this.x - other.x;
     const dy = this.y - other.y;

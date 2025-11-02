@@ -1,6 +1,6 @@
 import { InputHandler } from './InputHandler';
 import { clamp } from './utils';
-import { ShieldAbility } from './ShieldAbility'; // Import ShieldAbility
+import { ShieldAbility } from './ShieldAbility';
 
 export class Player {
   x: number;
@@ -14,17 +14,19 @@ export class Player {
   level: number;
   experienceToNextLevel: number;
   private onLevelUpCallback: () => void;
-  private shieldAbility: ShieldAbility | null = null; // Reference to the shield ability
+  private shieldAbility: ShieldAbility | null = null;
+  private sprite: HTMLImageElement | undefined; // New: Player sprite
 
   // Dash properties
-  private dashSpeedMultiplier: number = 2.5; // How much faster the player moves during a dash
-  private dashDuration: number = 0.15; // How long the dash lasts in seconds
-  private dashCooldown: number = 2; // How long until the dash can be used again in seconds
+  private dashSpeedMultiplier: number = 2.5;
+  private dashDuration: number = 0.15;
+  private dashCooldown: number = 2;
   private isDashing: boolean = false;
   private currentDashCooldown: number = 0;
   private currentDashDuration: number = 0;
+  private dashTrail: { x: number; y: number; alpha: number; size: number }[] = []; // For dash visual effect
 
-  constructor(x: number, y: number, size: number, speed: number, color: string, maxHealth: number, onLevelUp: () => void) {
+  constructor(x: number, y: number, size: number, speed: number, color: string, maxHealth: number, onLevelUp: () => void, sprite: HTMLImageElement | undefined) {
     this.x = x;
     this.y = y;
     this.size = size;
@@ -36,6 +38,11 @@ export class Player {
     this.level = 1;
     this.experienceToNextLevel = 100;
     this.onLevelUpCallback = onLevelUp;
+    this.sprite = sprite;
+  }
+
+  setSprite(sprite: HTMLImageElement | undefined) {
+    this.sprite = sprite;
   }
 
   setShieldAbility(shieldAbility: ShieldAbility) {
@@ -54,7 +61,7 @@ export class Player {
     if (input.isPressed('shift') && !this.isDashing && this.currentDashCooldown <= 0) {
       this.isDashing = true;
       this.currentDashDuration = this.dashDuration;
-      this.currentDashCooldown = this.dashCooldown; // Start cooldown immediately
+      this.currentDashCooldown = this.dashCooldown;
       console.log("Dash activated!");
     }
 
@@ -73,11 +80,21 @@ export class Player {
     if (this.isDashing) {
       moveAmount *= this.dashSpeedMultiplier;
       this.currentDashDuration -= deltaTime;
+      // Add to dash trail
+      this.dashTrail.push({ x: this.x, y: this.y, alpha: 1, size: this.size });
       if (this.currentDashDuration <= 0) {
         this.isDashing = false;
         console.log("Dash ended.");
       }
     }
+
+    // Update dash trail
+    this.dashTrail = this.dashTrail.filter(trail => {
+      trail.alpha -= deltaTime * 3; // Fade out faster
+      trail.size -= deltaTime * 50; // Shrink faster
+      return trail.alpha > 0 && trail.size > 0;
+    });
+
 
     if (input.isPressed('w') || input.isPressed('arrowup')) {
       this.y -= moveAmount;
@@ -97,10 +114,25 @@ export class Player {
   }
 
   draw(ctx: CanvasRenderingContext2D, cameraX: number, cameraY: number) {
-    ctx.fillStyle = this.color;
-    ctx.beginPath();
-    ctx.arc(this.x - cameraX, this.y - cameraY, this.size / 2, 0, Math.PI * 2);
-    ctx.fill();
+    // Draw dash trail
+    this.dashTrail.forEach(trail => {
+      ctx.save();
+      ctx.globalAlpha = trail.alpha;
+      ctx.fillStyle = 'rgba(0, 255, 255, 0.5)'; // Cyan trail
+      ctx.beginPath();
+      ctx.arc(trail.x - cameraX, trail.y - cameraY, trail.size / 2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    });
+
+    if (this.sprite) {
+      ctx.drawImage(this.sprite, this.x - cameraX - this.size / 2, this.y - cameraY - this.size / 2, this.size, this.size);
+    } else {
+      ctx.fillStyle = this.color;
+      ctx.beginPath();
+      ctx.arc(this.x - cameraX, this.y - cameraY, this.size / 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
 
     const healthBarWidth = this.size * 1.5;
     const healthBarHeight = 5;
@@ -152,7 +184,7 @@ export class Player {
     this.level++;
     this.experience -= this.experienceToNextLevel;
     this.experienceToNextLevel = Math.floor(this.experienceToNextLevel * 1.5);
-    this.onLevelUpCallback(); // Trigger the callback to show the level-up screen
+    this.onLevelUpCallback();
   }
 
   increaseSpeed(amount: number) {
@@ -162,12 +194,12 @@ export class Player {
 
   increaseMaxHealth(amount: number) {
     this.maxHealth += amount;
-    this.currentHealth = this.maxHealth; // Heal to full on health upgrade
+    this.currentHealth = this.maxHealth;
     console.log(`Player max health increased to ${this.maxHealth}`);
   }
 
   reduceDashCooldown(amount: number) {
-    this.dashCooldown = Math.max(0.5, this.dashCooldown - amount); // Minimum cooldown of 0.5 seconds
+    this.dashCooldown = Math.max(0.5, this.dashCooldown - amount);
     console.log(`Dash cooldown reduced to ${this.dashCooldown} seconds`);
   }
 }

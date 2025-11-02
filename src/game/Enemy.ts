@@ -8,8 +8,9 @@ export class Enemy {
   color: string;
   maxHealth: number;
   currentHealth: number;
+  private sprite: HTMLImageElement | undefined; // New: Enemy sprite
 
-  constructor(x: number, y: number, size: number, speed: number, color: string, maxHealth: number) {
+  constructor(x: number, y: number, size: number, speed: number, color: string, maxHealth: number, sprite: HTMLImageElement | undefined) {
     this.x = x;
     this.y = y;
     this.size = size;
@@ -17,10 +18,11 @@ export class Enemy {
     this.color = color;
     this.maxHealth = maxHealth;
     this.currentHealth = maxHealth;
+    this.sprite = sprite;
   }
 
   update(deltaTime: number, player: Player) {
-    if (!this.isAlive()) return; // Don't update if dead
+    if (!this.isAlive()) return;
 
     // Move towards the player
     const dx = player.x - this.x;
@@ -34,12 +36,16 @@ export class Enemy {
   }
 
   draw(ctx: CanvasRenderingContext2D, cameraX: number, cameraY: number) {
-    if (!this.isAlive()) return; // Don't draw if dead
+    if (!this.isAlive()) return;
 
-    ctx.fillStyle = this.color;
-    ctx.beginPath();
-    ctx.arc(this.x - cameraX, this.y - cameraY, this.size / 2, 0, Math.PI * 2);
-    ctx.fill();
+    if (this.sprite) {
+      ctx.drawImage(this.sprite, this.x - cameraX - this.size / 2, this.y - cameraY - this.size / 2, this.size, this.size);
+    } else {
+      ctx.fillStyle = this.color;
+      ctx.beginPath();
+      ctx.arc(this.x - cameraX, this.y - cameraY, this.size / 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
 
     // Draw health bar (simple rectangle above enemy)
     const healthBarWidth = this.size * 1.5;
@@ -64,7 +70,6 @@ export class Enemy {
     return this.currentHealth > 0;
   }
 
-  // Basic collision check with another circle (e.g., player)
   collidesWith(other: { x: number; y: number; size: number }): boolean {
     const dx = this.x - other.x;
     const dy = this.y - other.y;

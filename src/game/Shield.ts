@@ -6,14 +6,15 @@ export class Shield {
   currentHealth: number;
   color: string;
   isActive: boolean;
+  private pulseTimer: number = 0; // For pulsing effect
 
   constructor(radius: number, maxHealth: number) {
-    this.x = 0; // Will be updated by the player's position
-    this.y = 0; // Will be updated by the player's position
+    this.x = 0;
+    this.y = 0;
     this.radius = radius;
     this.maxHealth = maxHealth;
     this.currentHealth = maxHealth;
-    this.color = 'rgba(0, 191, 255, 0.4)'; // Deep Sky Blue, semi-transparent
+    this.color = 'rgba(0, 191, 255, 0.4)';
     this.isActive = false;
   }
 
@@ -25,16 +26,35 @@ export class Shield {
   draw(ctx: CanvasRenderingContext2D, cameraX: number, cameraY: number) {
     if (!this.isActive) return;
 
-    const healthPercentage = this.currentHealth / this.maxHealth;
-    const alpha = 0.2 + (healthPercentage * 0.3); // Fade out as health decreases
+    this.pulseTimer += 0.1; // Adjust speed of pulse
+    const pulseScale = 1 + Math.sin(this.pulseTimer) * 0.05; // Subtle size pulse
+    const currentRadius = this.radius * pulseScale;
 
-    ctx.strokeStyle = `rgba(0, 191, 255, ${alpha})`;
-    ctx.lineWidth = 5;
+    const healthPercentage = this.currentHealth / this.maxHealth;
+    const baseAlpha = 0.3 + (healthPercentage * 0.4); // Fade out as health decreases
+    const strokeAlpha = 0.6 + (healthPercentage * 0.4); // Stronger stroke when healthy
+
+    // Outer glow/fill
+    const gradient = ctx.createRadialGradient(
+      this.x - cameraX, this.y - cameraY, currentRadius * 0.5,
+      this.x - cameraX, this.y - cameraY, currentRadius
+    );
+    gradient.addColorStop(0, `rgba(0, 191, 255, ${baseAlpha})`); // Deep Sky Blue center
+    gradient.addColorStop(1, `rgba(0, 191, 255, ${baseAlpha * 0.2})`); // Fading outer edge
+
+    ctx.fillStyle = gradient;
     ctx.beginPath();
-    ctx.arc(this.x - cameraX, this.y - cameraY, this.radius, 0, Math.PI * 2);
+    ctx.arc(this.x - cameraX, this.y - cameraY, currentRadius, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Stronger outer stroke
+    ctx.strokeStyle = `rgba(0, 191, 255, ${strokeAlpha})`;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(this.x - cameraX, this.y - cameraY, currentRadius, 0, Math.PI * 2);
     ctx.stroke();
 
-    // Optional: Draw a small health bar for the shield
+    // Draw a small health bar for the shield
     const barWidth = this.radius * 1.5;
     const barHeight = 3;
     ctx.fillStyle = 'gray';
@@ -49,11 +69,11 @@ export class Shield {
     this.currentHealth -= amount;
     if (this.currentHealth <= 0) {
       this.currentHealth = 0;
-      this.isActive = false; // Shield breaks
+      this.isActive = false;
       console.log("Shield broken!");
-      return Math.abs(this.currentHealth); // Return any leftover damage
+      return Math.abs(this.currentHealth);
     }
-    return 0; // No leftover damage
+    return 0;
   }
 
   regenerate(amount: number) {
@@ -74,7 +94,7 @@ export class Shield {
 
   increaseMaxHealth(amount: number) {
     this.maxHealth += amount;
-    this.currentHealth += amount; // Also heal current health
+    this.currentHealth += amount;
     console.log(`Shield max health increased to ${this.maxHealth}`);
   }
 }

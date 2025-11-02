@@ -5,20 +5,22 @@ export class SpinningBladeWeapon {
   blades: SpinningBlade[];
   private baseDamage: number;
   private orbitDistance: number;
-  private rotationSpeed: number; // radians per second
-  private bladeRadius: number;
+  private rotationSpeed: number;
+  public bladeRadius: number; // Changed to public
   private numBlades: number;
-  private attackCooldown: number; // How often a blade can hit the same enemy
-  private lastHitTime: Map<string, number>; // Map<enemyId_bladeId, timestamp>
+  private attackCooldown: number;
+  private lastHitTime: Map<string, number>;
+  private bladeSprite: HTMLImageElement | undefined; // New: Blade sprite
 
-  constructor(baseDamage: number, orbitDistance: number, rotationSpeed: number, bladeRadius: number, numBlades: number) {
+  constructor(baseDamage: number, orbitDistance: number, rotationSpeed: number, bladeRadius: number, numBlades: number, bladeSprite: HTMLImageElement | undefined) {
     this.baseDamage = baseDamage;
     this.orbitDistance = orbitDistance;
     this.rotationSpeed = rotationSpeed;
     this.bladeRadius = bladeRadius;
     this.numBlades = numBlades;
-    this.attackCooldown = 0.2; // Blades can hit every 0.2 seconds
+    this.attackCooldown = 0.2;
     this.lastHitTime = new Map();
+    this.bladeSprite = bladeSprite;
     this.blades = this.createBlades();
   }
 
@@ -26,7 +28,7 @@ export class SpinningBladeWeapon {
     const newBlades: SpinningBlade[] = [];
     for (let i = 0; i < this.numBlades; i++) {
       const angle = (Math.PI * 2 / this.numBlades) * i;
-      newBlades.push(new SpinningBlade(this.orbitDistance, this.rotationSpeed, this.baseDamage, this.bladeRadius, angle));
+      newBlades.push(new SpinningBlade(this.orbitDistance, this.rotationSpeed, this.baseDamage, this.bladeRadius, angle, this.bladeSprite));
     }
     return newBlades;
   }
@@ -37,8 +39,8 @@ export class SpinningBladeWeapon {
 
       for (const enemy of enemies) {
         if (enemy.isAlive() && blade.collidesWith(enemy)) {
-          const hitKey = `${enemy.x}_${enemy.y}_${blade.angle}`; // Unique key for enemy-blade interaction
-          const currentTime = performance.now() / 1000; // Convert to seconds
+          const hitKey = `${enemy.x}_${enemy.y}_${blade.angle}`;
+          const currentTime = performance.now() / 1000;
 
           if (!this.lastHitTime.has(hitKey) || (currentTime - this.lastHitTime.get(hitKey)! > this.attackCooldown)) {
             enemy.takeDamage(blade.damage);
@@ -48,10 +50,9 @@ export class SpinningBladeWeapon {
       }
     });
 
-    // Clean up old hit times to prevent memory leak
     const currentTime = performance.now() / 1000;
     for (const [key, time] of this.lastHitTime.entries()) {
-      if (currentTime - time > this.attackCooldown * 2) { // Keep for a bit longer than cooldown
+      if (currentTime - time > this.attackCooldown * 2) {
         this.lastHitTime.delete(key);
       }
     }
@@ -71,7 +72,7 @@ export class SpinningBladeWeapon {
 
   addBlade() {
     this.numBlades++;
-    this.blades = this.createBlades(); // Recreate blades to evenly space them
+    this.blades = this.createBlades();
     console.log(`Added a spinning blade. Total blades: ${this.numBlades}`);
   }
 }

@@ -7,8 +7,9 @@ import { ProjectileWeapon } from './ProjectileWeapon';
 import { SpinningBladeWeapon } from './SpinningBladeWeapon';
 import { MagnetPowerUp } from './MagnetPowerUp';
 import { ExplosionAbility } from './ExplosionAbility';
-import { ShieldAbility } from './ShieldAbility'; // Import new ability
+import { ShieldAbility } from './ShieldAbility';
 import { clamp } from './utils';
+import { SpriteManager } from './SpriteManager'; // Import SpriteManager
 
 export class GameEngine {
   private ctx: CanvasRenderingContext2D;
@@ -27,10 +28,12 @@ export class GameEngine {
   private projectileWeapon: ProjectileWeapon;
   private spinningBladeWeapon: SpinningBladeWeapon;
   private explosionAbility: ExplosionAbility;
-  private shieldAbility: ShieldAbility; // New shield ability instance
+  private shieldAbility: ShieldAbility;
   private gameOver: boolean = false;
   private isPaused: boolean = false;
   private onLevelUpCallback: () => void;
+  private spriteManager: SpriteManager; // New: SpriteManager instance
+  private assetsLoaded: boolean = false;
 
   // Wave system properties
   private waveNumber: number = 1;
@@ -48,24 +51,65 @@ export class GameEngine {
   constructor(ctx: CanvasRenderingContext2D, onLevelUp: () => void) {
     this.ctx = ctx;
     this.inputHandler = new InputHandler();
-    this.player = new Player(this.worldWidth / 2, this.worldHeight / 2, 30, 200, 'blue', 100, this.triggerLevelUp);
+    this.onLevelUpCallback = onLevelUp;
+    this.spriteManager = new SpriteManager(this.onAllAssetsLoaded); // Initialize SpriteManager
+
+    // Initialize game objects with placeholder sprites for now, will be updated after assets load
+    this.player = new Player(this.worldWidth / 2, this.worldHeight / 2, 30, 200, 'blue', 100, this.triggerLevelUp, undefined);
+    this.auraWeapon = new AuraWeapon(10, 100, 0.5);
+    this.projectileWeapon = new ProjectileWeapon(15, 300, 1.5, 8, 3, undefined);
+    this.spinningBladeWeapon = new SpinningBladeWeapon(10, 60, 3, 10, 1, undefined);
+    this.explosionAbility = new ExplosionAbility(50, 150, 5);
+    this.shieldAbility = new ShieldAbility(40, 100, 10, 10);
+    this.player.setShieldAbility(this.shieldAbility);
+
     this.lastTime = 0;
     this.animationFrameId = null;
     this.enemies = [];
     this.experienceGems = [];
     this.magnetPowerUps = [];
     this.enemySpawnTimer = 0;
-    this.auraWeapon = new AuraWeapon(10, 100, 0.5);
-    this.projectileWeapon = new ProjectileWeapon(15, 300, 1.5, 8, 3);
-    this.spinningBladeWeapon = new SpinningBladeWeapon(10, 60, 3, 10, 1);
-    this.explosionAbility = new ExplosionAbility(50, 150, 5);
-    this.shieldAbility = new ShieldAbility(40, 100, 10, 10); // Initialize shield ability (radius, maxHealth, cooldown, regenRate)
-    this.player.setShieldAbility(this.shieldAbility); // Pass shield ability to player
-    this.onLevelUpCallback = onLevelUp;
+
+    this.loadAssets();
   }
 
+  private loadAssets() {
+    // Player
+    this.spriteManager.loadSprite('player', SpriteManager.getPlayerSpriteSVG(this.player.size * 2)); // Load larger sprite for better detail
+
+    // Enemies
+    this.spriteManager.loadSprite('enemy_normal', SpriteManager.getEnemyNormalSpriteSVG(40));
+    this.spriteManager.loadSprite('enemy_fast', SpriteManager.getEnemyFastSpriteSVG(30));
+    this.spriteManager.loadSprite('enemy_tanky', SpriteManager.getEnemyTankySpriteSVG(50));
+
+    // Weapons/Abilities
+    this.spriteManager.loadSprite('projectile', SpriteManager.getProjectileSpriteSVG(this.projectileWeapon.projectileRadius * 2));
+    this.spriteManager.loadSprite('spinning_blade', SpriteManager.getSpinningBladeSpriteSVG(this.spinningBladeWeapon.bladeRadius * 2));
+
+    // Pickups
+    this.spriteManager.loadSprite('experience_gem', SpriteManager.getExperienceGemSpriteSVG(20));
+    this.spriteManager.loadSprite('magnet_powerup', SpriteManager.getMagnetPowerUpSpriteSVG(40));
+
+    // Background
+    this.spriteManager.loadSprite('background_tile', SpriteManager.getBackgroundTileSVG(100)); // Tile size 100x100
+  }
+
+  private onAllAssetsLoaded = () => {
+    this.assetsLoaded = true;
+    console.log("All game assets loaded!");
+    // Re-initialize game objects with loaded sprites
+    this.player = new Player(this.worldWidth / 2, this.worldHeight / 2, 30, 200, 'blue', 100, this.triggerLevelUp, this.spriteManager.getSprite('player'));
+    this.projectileWeapon = new ProjectileWeapon(15, 300, 1.5, 8, 3, this.spriteManager.getSprite('projectile'));
+    this.spinningBladeWeapon = new SpinningBladeWeapon(10, 60, 3, 10, 1, this.spriteManager.getSprite('spinning_blade'));
+    this.player.setShieldAbility(this.shieldAbility); // Re-set shield ability after player re-init
+    this.gameLoop(0); // Start the game loop only after assets are loaded
+  };
+
   init() {
-    this.gameLoop(0);
+    // Game loop will start in onAllAssetsLoaded
+    if (this.assetsLoaded) {
+      this.gameLoop(0);
+    }
   }
 
   private triggerLevelUp = () => {
@@ -117,13 +161,13 @@ export class GameEngine {
       case 'explosion_radius':
         this.explosionAbility.increaseRadius(20);
         break;
-      case 'shield_health': // New upgrade
+      case 'shield_health':
         this.shieldAbility.increaseMaxHealth(30);
         break;
-      case 'shield_regen': // New upgrade
+      case 'shield_regen':
         this.shieldAbility.increaseRegeneration(5);
         break;
-      case 'shield_cooldown': // New upgrade
+      case 'shield_cooldown':
         this.shieldAbility.reduceCooldown(1.5);
         break;
       default:
@@ -164,9 +208,9 @@ export class GameEngine {
 
     // Base stats for different enemy types
     const enemyTypes = [
-      { name: 'normal', size: 20, baseHealth: 30, baseSpeed: 100, color: 'red' },
-      { name: 'fast', size: 15, baseHealth: 20, baseSpeed: 150, color: 'green' },
-      { name: 'tanky', size: 25, baseHealth: 50, baseSpeed: 70, color: 'purple' },
+      { name: 'normal', size: 20, baseHealth: 30, baseSpeed: 100, color: 'red', spriteName: 'enemy_normal' },
+      { name: 'fast', size: 15, baseHealth: 20, baseSpeed: 150, color: 'green', spriteName: 'enemy_fast' },
+      { name: 'tanky', size: 25, baseHealth: 50, baseSpeed: 70, color: 'purple', spriteName: 'enemy_tanky' },
     ];
 
     const randomType = enemyTypes[Math.floor(Math.random() * enemyTypes.length)];
@@ -177,12 +221,13 @@ export class GameEngine {
 
     const enemyHealth = Math.floor(randomType.baseHealth * healthMultiplier);
     const enemySpeed = randomType.baseSpeed * speedMultiplier;
+    const enemySprite = this.spriteManager.getSprite(randomType.spriteName);
 
-    this.enemies.push(new Enemy(spawnX, spawnY, randomType.size, enemySpeed, randomType.color, enemyHealth));
+    this.enemies.push(new Enemy(spawnX, spawnY, randomType.size, enemySpeed, randomType.color, enemyHealth, enemySprite));
   }
 
   private update(deltaTime: number) {
-    if (this.gameOver || this.isPaused) return;
+    if (this.gameOver || this.isPaused || !this.assetsLoaded) return;
 
     this.player.update(this.inputHandler, deltaTime, this.worldWidth, this.worldHeight);
 
@@ -224,14 +269,16 @@ export class GameEngine {
     this.projectileWeapon.update(deltaTime, this.player.x, this.player.y, this.enemies);
     this.spinningBladeWeapon.update(deltaTime, this.player.x, this.player.y, this.enemies);
     this.explosionAbility.update(deltaTime, this.enemies);
-    this.shieldAbility.update(deltaTime, this.player.x, this.player.y); // Update shield ability
+    this.shieldAbility.update(deltaTime, this.player.x, this.player.y);
 
     const defeatedEnemies = this.enemies.filter(enemy => !enemy.isAlive());
     defeatedEnemies.forEach(enemy => {
-      this.experienceGems.push(new ExperienceGem(enemy.x, enemy.y, 10));
+      const gemSprite = this.spriteManager.getSprite('experience_gem');
+      this.experienceGems.push(new ExperienceGem(enemy.x, enemy.y, 10, gemSprite));
       // 10% chance to drop a magnet power-up
       if (Math.random() < 0.1) {
-        this.magnetPowerUps.push(new MagnetPowerUp(enemy.x, enemy.y));
+        const magnetSprite = this.spriteManager.getSprite('magnet_powerup');
+        this.magnetPowerUps.push(new MagnetPowerUp(enemy.x, enemy.y, 5, 300, magnetSprite));
       }
     });
     this.enemies = this.enemies.filter(enemy => enemy.isAlive());
@@ -281,11 +328,37 @@ export class GameEngine {
   }
 
   private draw() {
+    if (!this.assetsLoaded) {
+      this.ctx.fillStyle = 'black';
+      this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+      this.ctx.fillStyle = 'white';
+      this.ctx.font = '30px Arial';
+      this.ctx.textAlign = 'center';
+      this.ctx.fillText('Loading Assets...', this.ctx.canvas.width / 2, this.ctx.canvas.height / 2);
+      return;
+    }
+
     this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
 
-    this.ctx.fillStyle = '#333';
-    this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+    // Draw tiled background
+    const backgroundTile = this.spriteManager.getSprite('background_tile');
+    if (backgroundTile) {
+      const tileWidth = backgroundTile.width;
+      const tileHeight = backgroundTile.height;
+      const startX = -this.cameraX % tileWidth;
+      const startY = -this.cameraY % tileHeight;
 
+      for (let x = startX; x < this.ctx.canvas.width; x += tileWidth) {
+        for (let y = startY; y < this.ctx.canvas.height; y += tileHeight) {
+          this.ctx.drawImage(backgroundTile, x, y, tileWidth, tileHeight);
+        }
+      }
+    } else {
+      this.ctx.fillStyle = '#333';
+      this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+    }
+
+    // Draw world border
     this.ctx.strokeStyle = 'white';
     this.ctx.lineWidth = 2;
     this.ctx.strokeRect(
@@ -304,7 +377,7 @@ export class GameEngine {
     this.magnetPowerUps.forEach(magnet => magnet.draw(this.ctx, this.cameraX, this.cameraY));
 
     this.player.draw(this.ctx, this.cameraX, this.cameraY);
-    this.shieldAbility.draw(this.ctx, this.cameraX, this.cameraY); // Draw shield
+    this.shieldAbility.draw(this.ctx, this.cameraX, this.cameraY);
 
     this.enemies.forEach(enemy => enemy.draw(this.ctx, this.cameraX, this.cameraY));
 
@@ -317,20 +390,24 @@ export class GameEngine {
       this.ctx.stroke();
     }
 
+    // Draw UI text with shadow
     this.ctx.fillStyle = 'white';
     this.ctx.font = '20px Arial';
     this.ctx.textAlign = 'left';
+    this.ctx.shadowColor = 'black';
+    this.ctx.shadowBlur = 5;
+
     this.ctx.fillText(`Health: ${this.player.currentHealth}/${this.player.maxHealth}`, 10, 30);
     this.ctx.fillText(`Level: ${this.player.level}`, 10, 60);
     this.ctx.fillText(`XP: ${this.player.experience}/${this.player.experienceToNextLevel}`, 10, 90);
     this.ctx.fillText(`Shield: ${this.shieldAbility.shield.isActive ? `${this.shieldAbility.shield.currentHealth}/${this.shieldAbility.shield.maxHealth}` : 'Inactive'}`, 10, 120);
-
 
     // Display wave information
     this.ctx.textAlign = 'right';
     this.ctx.fillText(`Wave: ${this.waveNumber}`, this.ctx.canvas.width - 10, 30);
     this.ctx.fillText(`Time: ${Math.floor(this.waveDuration - this.waveTimeElapsed)}s`, this.ctx.canvas.width - 10, 60);
 
+    this.ctx.shadowColor = 'transparent'; // Reset shadow
 
     if (this.gameOver) {
       this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
@@ -345,7 +422,7 @@ export class GameEngine {
   }
 
   private gameLoop = (currentTime: number) => {
-    if (this.isPaused) {
+    if (this.isPaused || !this.assetsLoaded) {
       this.animationFrameId = requestAnimationFrame(this.gameLoop);
       return;
     }

@@ -5,12 +5,13 @@ export class ProjectileWeapon {
   projectiles: Projectile[];
   private baseDamage: number;
   private projectileSpeed: number;
-  private fireRate: number; // seconds between shots
+  private fireRate: number;
   private lastFireTime: number;
-  private projectileRadius: number;
-  private projectileLifetime: number; // seconds
+  public projectileRadius: number; // Changed to public
+  private projectileLifetime: number;
+  private projectileSprite: HTMLImageElement | undefined; // New: Projectile sprite
 
-  constructor(baseDamage: number, projectileSpeed: number, fireRate: number, projectileRadius: number, projectileLifetime: number) {
+  constructor(baseDamage: number, projectileSpeed: number, fireRate: number, projectileRadius: number, projectileLifetime: number, projectileSprite: HTMLImageElement | undefined) {
     this.projectiles = [];
     this.baseDamage = baseDamage;
     this.projectileSpeed = projectileSpeed;
@@ -18,16 +19,15 @@ export class ProjectileWeapon {
     this.lastFireTime = 0;
     this.projectileRadius = projectileRadius;
     this.projectileLifetime = projectileLifetime;
+    this.projectileSprite = projectileSprite;
   }
 
   update(deltaTime: number, playerX: number, playerY: number, enemies: Enemy[]) {
     this.lastFireTime += deltaTime;
 
-    // Fire a new projectile if enough time has passed and there are enemies
     if (this.lastFireTime >= this.fireRate && enemies.length > 0) {
-      this.lastFireTime = 0; // Reset timer
+      this.lastFireTime = 0;
 
-      // Find the closest enemy to target
       let closestEnemy: Enemy | null = null;
       let minDistance = Infinity;
 
@@ -45,7 +45,6 @@ export class ProjectileWeapon {
       }
 
       if (closestEnemy) {
-        // Calculate direction towards the closest enemy
         const dx = closestEnemy.x - playerX;
         const dy = closestEnemy.y - playerY;
         const distance = Math.sqrt(dx * dx + dy * dy);
@@ -63,27 +62,27 @@ export class ProjectileWeapon {
               this.baseDamage,
               directionX,
               directionY,
-              'cyan', // Projectile color
-              this.projectileLifetime
+              'cyan',
+              this.projectileLifetime,
+              this.projectileSprite // Pass the sprite
             )
           );
         }
       }
     }
 
-    // Update existing projectiles and handle collisions
     this.projectiles = this.projectiles.filter(projectile => {
       const isAlive = projectile.update(deltaTime);
-      if (!isAlive) return false; // Remove if lifetime expired
+      if (!isAlive) return false;
 
       for (let i = 0; i < enemies.length; i++) {
         const enemy = enemies[i];
         if (enemy.isAlive() && projectile.collidesWith(enemy)) {
           enemy.takeDamage(projectile.damage);
-          return false; // Remove projectile on hit
+          return false;
         }
       }
-      return true; // Keep projectile if it hasn't hit anything and is still alive
+      return true;
     });
   }
 
@@ -99,7 +98,7 @@ export class ProjectileWeapon {
   }
 
   decreaseFireRate(amount: number) {
-    this.fireRate = Math.max(0.1, this.fireRate - amount); // Ensure fire rate doesn't go below a minimum
+    this.fireRate = Math.max(0.1, this.fireRate - amount);
     console.log(`Projectile weapon fire rate decreased to ${this.fireRate} seconds`);
   }
 }
