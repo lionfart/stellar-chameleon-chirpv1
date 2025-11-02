@@ -40,6 +40,7 @@ export class GameEngine {
   private soundManager: SoundManager;
   private assetsLoaded: boolean = false;
   private gameOverSoundPlayed: boolean = false; // New: To ensure game over sound plays only once
+  private backgroundMusicInstance: HTMLAudioElement | null = null; // New: To hold the background music instance
 
   private gameState: GameState;
   private waveManager: WaveManager;
@@ -128,6 +129,7 @@ export class GameEngine {
     this.soundManager.loadSound('magnet_collect', SoundManager.getMagnetCollectSound());
     this.soundManager.loadSound('player_hit', SoundManager.getPlayerHitSound()); // Load new player hit sound
     this.soundManager.loadSound('game_over', SoundManager.getGameOverSound()); // Load new game over sound
+    this.soundManager.loadSound('background_music', SoundManager.getBackgroundMusic()); // Load background music
   }
 
   private onAllAssetsLoaded = () => {
@@ -145,6 +147,7 @@ export class GameEngine {
       }
       this.gameState.vendor['sprite'] = this.spriteManager.getSprite('vendor');
 
+      this.backgroundMusicInstance = this.soundManager.playSound('background_music', true, 0.3); // Play background music on loop
       this.gameLoop(0);
     }
   };
@@ -167,6 +170,7 @@ export class GameEngine {
       cancelAnimationFrame(this.animationFrameId);
       this.animationFrameId = null;
     }
+    this.soundManager.stopSound(this.backgroundMusicInstance); // Stop music when paused
   }
 
   resume() {
@@ -175,6 +179,9 @@ export class GameEngine {
     this.lastTime = performance.now(); // Reset lastTime to current time to prevent large deltaTime
     if (!this.animationFrameId) { // Only request a new frame if not already running
       this.animationFrameId = requestAnimationFrame(this.gameLoop);
+    }
+    if (this.backgroundMusicInstance) {
+      this.backgroundMusicInstance.play().catch(e => console.warn("Failed to resume background music:", e)); // Resume music
     }
   }
 
@@ -249,8 +256,9 @@ export class GameEngine {
 
   restartGame = () => {
     console.log("GameEngine: Restarting game..."); // Debug log
-    // Remove the old gameState.reset() as we are creating a new GameState object.
-    // this.gameState.reset(); 
+    // Stop current background music before restarting
+    this.soundManager.stopSound(this.backgroundMusicInstance);
+    this.backgroundMusicInstance = null; // Clear the instance
 
     const player = new Player(this.worldWidth / 2, this.worldHeight / 2, 30, 200, 'blue', 100, this.triggerLevelUp, undefined, this.soundManager);
     const vendor = new Vendor(this.worldWidth / 2 + 200, this.worldHeight / 2, 50, undefined);
@@ -284,6 +292,7 @@ export class GameEngine {
     this.gameOverScreen.clearClickListener();
     this.gameOverSoundPlayed = false; // Reset game over sound flag
     this.lastTime = performance.now();
+    this.backgroundMusicInstance = this.soundManager.playSound('background_music', true, 0.3); // Start background music again
     this.gameLoop(this.lastTime);
   };
 
@@ -337,11 +346,12 @@ export class GameEngine {
   }
 
   private update(deltaTime: number) {
-    // If the game is paused (e.g., shop is open), or game is over, or assets are not loaded, do not update game logic.
-    if (this.gameState.gameOver || this.gameState.isPaused || !this.assetsLoaded) {
-      // Play game over sound once if game is over and sound hasn't been played
+    // If the game is paused (e.g., shop is open), or assets are not loaded, do not update game logic.
+    if (this.gameState.isPaused || !this.assetsLoaded) {
+      // If game is over and sound hasn't been played, play it and stop background music
       if (this.gameState.gameOver && !this.gameOverSoundPlayed) {
         this.soundManager.playSound('game_over');
+        this.soundManager.stopSound(this.backgroundMusicInstance); // Stop background music
         this.gameOverSoundPlayed = true;
       }
       return;
@@ -514,5 +524,6 @@ export class GameEngine {
     }
     this.inputHandler.destroy();
     this.gameOverScreen.clearClickListener();
+    this.soundManager.stopSound(this.backgroundMusicInstance); // Ensure music stops on full game stop
   }
 }
