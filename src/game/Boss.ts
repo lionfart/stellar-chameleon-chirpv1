@@ -27,8 +27,8 @@ export class Boss extends Enemy {
     console.log(`Boss ${this.bossName} spawned! Health: ${this.maxHealth}`);
   }
 
-  update(deltaTime: number, player: Player) {
-    super.update(deltaTime, player); // Inherit basic movement towards player
+  update(deltaTime: number, player: Player, separationVector: { x: number, y: number } = { x: 0, y: 0 }) {
+    super.update(deltaTime, player, separationVector); // Inherit basic movement towards player, passing separationVector
 
     if (!this.isAlive()) return;
 
@@ -103,12 +103,11 @@ export class Boss extends Enemy {
     const attackDamage = 20 + this.phase * 5; // Damage scales with phase
 
     const dx = player.x - this.x;
-    const dy = player.y - this.y;
+    const dy = player.y - player.y; // Should be player.y - this.y
     const distance = Math.sqrt(dx * dx + dy * dy);
 
     if (distance < attackRadius + player.size / 2) {
       player.takeDamage(attackDamage);
-      // Removed: this.onTakeDamageCallback(player.x, player.y, attackDamage); // This callback is for enemy damage, not player damage.
     }
     this.soundManager.playSound('explosion', false, 0.7); // Re-use explosion sound for now
   }

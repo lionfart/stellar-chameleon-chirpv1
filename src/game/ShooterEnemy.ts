@@ -32,8 +32,8 @@ export class ShooterEnemy extends Enemy {
     this.projectileSprite = projectileSprite;
   }
 
-  update(deltaTime: number, player: Player) {
-    super.update(deltaTime, player); // Update base enemy movement and hit timer
+  update(deltaTime: number, player: Player, separationVector: { x: number, y: number } = { x: 0, y: 0 }) {
+    super.update(deltaTime, player, separationVector); // Update base enemy movement and hit timer, passing separationVector
 
     if (!this.isAlive()) {
       this.projectiles = []; // Clear projectiles if defeated

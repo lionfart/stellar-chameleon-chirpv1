@@ -30,7 +30,7 @@ export class Enemy {
     this.onTakeDamageCallback = onTakeDamage; // Assign callback
   }
 
-  update(deltaTime: number, player: Player) {
+  update(deltaTime: number, player: Player, separationVector: { x: number, y: number } = { x: 0, y: 0 }) {
     if (!this.isAlive()) return;
 
     // Update hit animation timer
@@ -38,15 +38,21 @@ export class Enemy {
       this.hitTimer -= deltaTime;
     }
 
-    // Move towards the player
+    // Calculate movement towards the player
+    let moveX = 0;
+    let moveY = 0;
     const dx = player.x - this.x;
     const dy = player.y - this.y;
     const distance = Math.sqrt(dx * dx + dy * dy);
 
     if (distance > 0) {
-      this.x += (dx / distance) * this.speed * deltaTime;
-      this.y += (dy / distance) * this.speed * deltaTime;
+      moveX = (dx / distance) * this.speed * deltaTime;
+      moveY = (dy / distance) * this.speed * deltaTime;
     }
+
+    // Apply combined movement (player-seeking + separation)
+    this.x += moveX + separationVector.x * deltaTime;
+    this.y += moveY + separationVector.y * deltaTime;
   }
 
   draw(ctx: CanvasRenderingContext2D, cameraX: number, cameraY: number) {

@@ -478,16 +478,54 @@ export class GameEngine {
 
     this.waveManager.update(deltaTime, this.cameraX, this.cameraY, this.ctx.canvas.width, this.ctx.canvas.height);
 
-    // Update current boss if exists
-    if (this.gameState.currentBoss && this.gameState.currentBoss.isAlive()) {
-      this.gameState.currentBoss.update(deltaTime, this.gameState.player);
+    // Calculate separation forces for enemies
+    const separationForces: { x: number, y: number }[] = new Array(this.gameState.enemies.length).fill(null).map(() => ({ x: 0, y: 0 }));
+    const separationStrength = 100; // How strongly they push each other
+
+    for (let i = 0; i < this.gameState.enemies.length; i++) {
+      const enemyA = this.gameState.enemies[i];
+      for (let j = i + 1; j < this.gameState.enemies.length; j++) {
+        const enemyB = this.gameState.enemies[j];
+
+        const dx = enemyA.x - enemyB.x;
+        const dy = enemyA.y - enemyB.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        const minDistance = enemyA.size / 2 + enemyB.size / 2; // Minimum distance without overlap
+        const separationRadius = minDistance * 1.5; // Enemies start separating when they are 1.5 times their combined radius apart
+
+        if (distance < separationRadius) {
+          const overlap = separationRadius - distance;
+          const forceMagnitude = (overlap / separationRadius) * separationStrength;
+
+          if (distance === 0) {
+            const randomAngle = Math.random() * Math.PI * 2;
+            separationForces[i].x += Math.cos(randomAngle) * forceMagnitude;
+            separationForces[i].y += Math.sin(randomAngle) * forceMagnitude;
+            separationForces[j].x -= Math.cos(randomAngle) * forceMagnitude;
+            separationForces[j].y -= Math.sin(randomAngle) * forceMagnitude;
+          } else {
+            const normalX = dx / distance;
+            const normalY = dy / distance;
+
+            separationForces[i].x += normalX * forceMagnitude;
+            separationForces[i].y += normalY * forceMagnitude;
+            separationForces[j].x -= normalX * forceMagnitude;
+            separationForces[j].y -= normalY * forceMagnitude;
+          }
+        }
+      }
     }
 
-    this.gameState.enemies.forEach(enemy => {
+    // Update enemies with separation forces
+    this.gameState.enemies.forEach((enemy, index) => {
       if (enemy instanceof ShooterEnemy) {
-        enemy.update(deltaTime, this.gameState.player);
-      } else {
-        enemy.update(deltaTime, this.gameState.player);
+        enemy.update(deltaTime, this.gameState.player, separationForces[index]);
+      } else if (enemy instanceof Boss) {
+        enemy.update(deltaTime, this.gameState.player, separationForces[index]);
+      }
+      else {
+        enemy.update(deltaTime, this.gameState.player, separationForces[index]);
       }
     });
     this.gameState.experienceGems.forEach(gem => gem.update(deltaTime));
