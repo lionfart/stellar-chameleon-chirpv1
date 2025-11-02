@@ -20,13 +20,12 @@ export class HealAbility {
     }
   }
 
-  // No draw method needed for a simple heal ability
-
   triggerHeal(player: Player): boolean {
     if (this.currentCooldown <= 0 && player.currentHealth < player.maxHealth) {
       player.currentHealth = Math.min(player.maxHealth, player.currentHealth + this.healAmount);
       this.currentCooldown = this.cooldown;
       this.soundManager.playSound('shield_activate'); // Re-using shield activate sound for heal for now
+      player.lastHealTime = performance.now() / 1000; // NEW: Update player's lastHealTime
       console.log(`Player healed for ${this.healAmount}. Current health: ${player.currentHealth}`);
       return true;
     }

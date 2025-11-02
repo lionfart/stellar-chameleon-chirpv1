@@ -1,8 +1,8 @@
 import { InputHandler } from './InputHandler';
 import { clamp } from './utils';
 import { ShieldAbility } from './ShieldAbility';
-import { HealAbility } from './HealAbility'; // Import HealAbility
-import { SoundManager } from './SoundManager'; // Import SoundManager
+import { HealAbility } from './HealAbility';
+import { SoundManager } from './SoundManager';
 
 export class Player {
   x: number;
@@ -15,13 +15,14 @@ export class Player {
   experience: number;
   level: number;
   experienceToNextLevel: number;
-  gold: number; // New: Gold currency
+  gold: number;
   private onLevelUpCallback: () => void;
   private shieldAbility: ShieldAbility | null = null;
-  private healAbility: HealAbility | null = null; // New: Heal ability reference
+  private healAbility: HealAbility | null = null;
   private sprite: HTMLImageElement | undefined;
-  private soundManager: SoundManager; // New: SoundManager instance
+  private soundManager: SoundManager;
   private hitTimer: number = 0; // For hit animation
+  lastHealTime: number = 0; // NEW: Track last heal time for visual effect
 
   // Dash properties
   private dashSpeedMultiplier: number = 2.5;
@@ -30,12 +31,12 @@ export class Player {
   private isDashing: boolean = false;
   private currentDashCooldown: number = 0;
   private currentDashDuration: number = 0;
-  private dashTrail: { x: number; y: number; alpha: number; size: number }[] = []; // For dash visual effect
+  private dashTrail: { x: number; y: number; alpha: number; size: number }[] = [];
 
   // New player properties for upgrades
-  baseMagnetRadius: number; // Base radius for pulling experience gems
-  experienceMultiplier: number; // Multiplier for experience gain
-  goldMultiplier: number; // Multiplier for gold gain
+  baseMagnetRadius: number;
+  experienceMultiplier: number;
+  goldMultiplier: number;
 
   constructor(x: number, y: number, size: number, speed: number, color: string, maxHealth: number, onLevelUp: () => void, sprite: HTMLImageElement | undefined, soundManager: SoundManager) {
     this.x = x;
@@ -48,13 +49,13 @@ export class Player {
     this.experience = 0;
     this.level = 1;
     this.experienceToNextLevel = 100;
-    this.gold = 0; // Initialize gold
+    this.gold = 0;
     this.onLevelUpCallback = onLevelUp;
     this.sprite = sprite;
-    this.soundManager = soundManager; // Assign SoundManager
-    this.baseMagnetRadius = 50; // Initial base magnet radius
-    this.experienceMultiplier = 1; // Initial experience multiplier
-    this.goldMultiplier = 1; // Initial gold multiplier
+    this.soundManager = soundManager;
+    this.baseMagnetRadius = 50;
+    this.experienceMultiplier = 1;
+    this.goldMultiplier = 1;
   }
 
   setSprite(sprite: HTMLImageElement | undefined) {
@@ -87,7 +88,7 @@ export class Player {
       this.isDashing = true;
       this.currentDashDuration = this.dashDuration;
       this.currentDashCooldown = this.dashCooldown;
-      this.soundManager.playSound('dash'); // Play dash sound
+      this.soundManager.playSound('dash');
       console.log("Dash activated!");
     }
 
@@ -102,7 +103,7 @@ export class Player {
 
     // Check for heal ability input (e.g., 'r' key)
     if (input.isPressed('r') && this.healAbility) {
-      this.healAbility.triggerHeal(this);
+      this.healAbility.triggerHeal(this); // Pass 'this' (player) to heal ability
     }
 
     let moveAmount = this.speed * deltaTime;
@@ -121,8 +122,8 @@ export class Player {
 
     // Update dash trail
     this.dashTrail = this.dashTrail.filter(trail => {
-      trail.alpha -= deltaTime * 3; // Fade out faster
-      trail.size -= deltaTime * 50; // Shrink faster
+      trail.alpha -= deltaTime * 3;
+      trail.size -= deltaTime * 50;
       return trail.alpha > 0 && trail.size > 0;
     });
 
@@ -149,7 +150,7 @@ export class Player {
     this.dashTrail.forEach(trail => {
       ctx.save();
       ctx.globalAlpha = trail.alpha;
-      ctx.fillStyle = 'rgba(0, 255, 255, 0.5)'; // Cyan trail
+      ctx.fillStyle = 'rgba(0, 255, 255, 0.5)';
       ctx.beginPath();
       ctx.arc(trail.x - cameraX, trail.y - cameraY, trail.size / 2, 0, Math.PI * 2);
       ctx.fill();
@@ -161,7 +162,8 @@ export class Player {
 
     // Apply hit flash effect
     if (this.hitTimer > 0) {
-      ctx.filter = 'brightness(200%) hue-rotate(180deg)'; // Make it brighter and redder
+      const hitAlpha = this.hitTimer / 0.15; // Fade out effect
+      ctx.filter = `brightness(${100 + hitAlpha * 100}%) hue-rotate(${hitAlpha * 180}deg)`; // More dynamic filter
     }
 
     if (this.sprite) {
@@ -174,6 +176,24 @@ export class Player {
     }
 
     ctx.restore(); // Restore context to remove filter
+
+    // NEW: Draw heal effect
+    const HEAL_EFFECT_DURATION = 0.5; // seconds
+    const currentTime = performance.now() / 1000;
+    if (this.lastHealTime > 0 && (currentTime - this.lastHealTime < HEAL_EFFECT_DURATION)) {
+      ctx.save();
+      const progress = (currentTime - this.lastHealTime) / HEAL_EFFECT_DURATION;
+      const alpha = 1 - progress;
+      const pulseRadius = this.size * (1 + progress * 0.5); // Grow and fade
+
+      ctx.strokeStyle = `rgba(0, 255, 0, ${alpha})`; // Green pulse
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(this.x - cameraX, this.y - cameraY, pulseRadius, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
+
 
     const healthBarWidth = this.size * 1.5;
     const healthBarHeight = 5;
@@ -194,8 +214,8 @@ export class Player {
 
     if (remainingDamage > 0) {
       this.currentHealth -= remainingDamage;
-      this.hitTimer = 0.15; // Set hit flash duration
-      this.soundManager.playSound('player_hit'); // Play player hit sound
+      this.hitTimer = 0.15;
+      this.soundManager.playSound('player_hit');
       if (this.currentHealth < 0) {
         this.currentHealth = 0;
       }
@@ -217,7 +237,7 @@ export class Player {
   }
 
   gainExperience(amount: number) {
-    this.experience += amount * this.experienceMultiplier; // Apply multiplier
+    this.experience += amount * this.experienceMultiplier;
     if (this.experience >= this.experienceToNextLevel) {
       this.levelUp();
     }
@@ -227,11 +247,11 @@ export class Player {
     this.level++;
     this.experience -= this.experienceToNextLevel;
     this.experienceToNextLevel = Math.floor(this.experienceToNextLevel * 1.5);
-    this.onLevelUpCallback(); // Trigger the callback to show the level-up screen and play sound
+    this.onLevelUpCallback();
   }
 
   gainGold(amount: number) {
-    this.gold += amount * this.goldMultiplier; // Apply multiplier
+    this.gold += amount * this.goldMultiplier;
     console.log(`Player gained ${amount} gold. Total: ${this.gold}`);
   }
 
@@ -258,7 +278,7 @@ export class Player {
 
   reduceDashCooldown(amount: number) {
     this.dashCooldown = Math.max(0.5, this.dashCooldown - amount);
-    this.currentDashCooldown = Math.min(this.currentDashCooldown, this.dashCooldown); // Adjust current cooldown if it's higher
+    this.currentDashCooldown = Math.min(this.currentDashCooldown, this.dashCooldown);
     console.log(`Dash cooldown reduced to ${this.dashCooldown} seconds`);
   }
 
