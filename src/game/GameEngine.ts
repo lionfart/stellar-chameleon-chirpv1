@@ -1,6 +1,6 @@
 import { Player } from './Player';
 import { InputHandler } from './InputHandler';
-import { Enemy } from './Enemy';
+import { Enemy } from './Enemy'; // Corrected import statement
 import { AuraWeapon } from './AuraWeapon';
 import { ProjectileWeapon } from './ProjectileWeapon';
 import { SpinningBladeWeapon } from './SpinningBladeWeapon';
@@ -160,13 +160,19 @@ export class GameEngine {
   pause() {
     console.log("GameEngine: Pausing game."); // Debug log
     this.gameState.isPaused = true;
+    if (this.animationFrameId) {
+      cancelAnimationFrame(this.animationFrameId);
+      this.animationFrameId = null;
+    }
   }
 
   resume() {
     console.log("GameEngine: Resuming game. Last time before resume:", this.lastTime); // Debug log
     this.gameState.isPaused = false;
     this.lastTime = performance.now(); // Reset lastTime to current time to prevent large deltaTime
-    this.gameLoop(this.lastTime); // Ensure game loop continues
+    if (!this.animationFrameId) { // Only request a new frame if not already running
+      this.animationFrameId = requestAnimationFrame(this.gameLoop);
+    }
   }
 
   openShop() {
@@ -183,6 +189,7 @@ export class GameEngine {
       if (item.id === 'buy_shield_ability' && this.gameState.shieldAbility) return false;
       return true;
     }), this.gameState.player.gold); // Modified: Pass player gold
+    this.pause(); // Ensure the game loop is properly paused
   }
 
   closeShop = () => {
@@ -190,7 +197,7 @@ export class GameEngine {
     // The game resumes when the shop is closed.
     this.gameState.showShop = false;
     this.onCloseShopCallback();
-    this.resume();
+    this.resume(); // Ensure the game loop is properly resumed
   }
 
   purchaseItem = (itemId: string) => {
@@ -462,6 +469,8 @@ export class GameEngine {
 
   private gameLoop = (currentTime: number) => {
     if (this.gameState.isPaused || !this.assetsLoaded) {
+      // If paused or assets not loaded, just request the next frame without updating/drawing
+      // This ensures the loop continues to check the paused state
       this.animationFrameId = requestAnimationFrame(this.gameLoop);
       return;
     }
@@ -481,6 +490,7 @@ export class GameEngine {
   stop() {
     if (this.animationFrameId) {
       cancelAnimationFrame(this.animationFrameId);
+      this.animationFrameId = null;
     }
     this.inputHandler.destroy();
     this.gameOverScreen.clearClickListener();
