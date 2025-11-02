@@ -43,4 +43,12 @@ export class Player {
     ctx.arc(this.x - cameraX, this.y - cameraY, this.size / 2, 0, Math.PI * 2);
     ctx.fill();
   }
+
+  // Basic collision check with another circle (e.g., enemy)
+  collidesWith(other: { x: number; y: number; size: number }): boolean {
+    const dx = this.x - other.x;
+    const dy = this.y - other.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    return distance < (this.size / 2 + other.size / 2);
+  }
 }
