@@ -106,7 +106,7 @@ export class GameEngine {
     // This callback will be called twice (once for SpriteManager, once for SoundManager)
     // We only want to set assetsLoaded to true and start the loop once all are truly loaded.
     // A simple counter or a Promise.all approach would be more robust for multiple managers.
-    // For now, we'll assume this is called after both managers have finished their loading.
+    // For now, we'll assume this is called after both managers have finished their internal counts.
     // A more robust solution would involve a shared loading state or a single promise.all.
     // For this example, we'll just check if both managers have finished their internal counts.
     if (this.spriteManager['loadedCount'] === this.spriteManager['totalCount'] &&
@@ -147,6 +147,32 @@ export class GameEngine {
     this.lastTime = performance.now();
     this.gameLoop(this.lastTime);
   }
+
+  restartGame = () => {
+    // Reset game state
+    this.player = new Player(this.worldWidth / 2, this.worldHeight / 2, 30, 200, 'blue', 100, this.triggerLevelUp, this.spriteManager.getSprite('player'), this.soundManager);
+    this.auraWeapon = new AuraWeapon(10, 100, 0.5);
+    this.projectileWeapon = new ProjectileWeapon(15, 300, 1.5, 8, 3, this.spriteManager.getSprite('projectile'), this.soundManager);
+    this.spinningBladeWeapon = new SpinningBladeWeapon(10, 60, 3, 10, 1, this.spriteManager.getSprite('spinning_blade'), this.soundManager);
+    this.explosionAbility = new ExplosionAbility(50, 150, 5, this.soundManager);
+    this.shieldAbility = new ShieldAbility(40, 100, 10, 10, this.soundManager);
+    this.player.setShieldAbility(this.shieldAbility);
+
+    this.enemies = [];
+    this.experienceGems = [];
+    this.magnetPowerUps = [];
+    this.activeMagnetRadius = 0;
+    this.activeMagnetDuration = 0;
+    this.enemySpawnTimer = 0;
+    this.waveNumber = 1;
+    this.waveTimeElapsed = 0;
+    this.enemySpawnInterval = 2; // Reset to initial spawn interval
+
+    this.gameOver = false;
+    this.isPaused = false;
+    this.lastTime = performance.now();
+    this.gameLoop(this.lastTime);
+  };
 
   applyUpgrade(upgradeId: string) {
     switch (upgradeId) {
@@ -265,6 +291,7 @@ export class GameEngine {
     this.cameraY = clamp(this.cameraY, 0, this.worldHeight - this.ctx.canvas.height);
 
     this.enemies.forEach(enemy => enemy.update(deltaTime, this.player));
+    this.experienceGems.forEach(gem => gem.update(deltaTime)); // Update gems for bobbing animation
 
     // Update wave timer and advance wave if needed
     this.waveTimeElapsed += deltaTime;
@@ -440,8 +467,35 @@ export class GameEngine {
       this.ctx.font = '48px Arial';
       this.ctx.textAlign = 'center';
       this.ctx.fillText('GAME OVER', this.ctx.canvas.width / 2, this.ctx.canvas.height / 2);
+      
+      // Draw restart button
+      const buttonWidth = 200;
+      const buttonHeight = 60;
+      const buttonX = this.ctx.canvas.width / 2 - buttonWidth / 2;
+      const buttonY = this.ctx.canvas.height / 2 + 70;
+
+      this.ctx.fillStyle = '#4CAF50'; // Green button
+      this.ctx.fillRect(buttonX, buttonY, buttonWidth, buttonHeight);
+      this.ctx.fillStyle = 'white';
       this.ctx.font = '24px Arial';
-      this.ctx.fillText('Refresh to restart', this.ctx.canvas.width / 2, this.ctx.canvas.height / 2 + 50);
+      this.ctx.fillText('Restart', this.ctx.canvas.width / 2, buttonY + buttonHeight / 2 + 8); // Center text vertically
+
+      // Add event listener for restart button
+      if (!this.ctx.canvas.onclick) { // Prevent adding multiple listeners
+        this.ctx.canvas.onclick = (event) => {
+          const rect = this.ctx.canvas.getBoundingClientRect();
+          const mouseX = event.clientX - rect.left;
+          const mouseY = event.clientY - rect.top;
+
+          if (mouseX >= buttonX && mouseX <= buttonX + buttonWidth &&
+              mouseY >= buttonY && mouseY <= buttonY + buttonHeight) {
+            this.restartGame();
+            this.ctx.canvas.onclick = null; // Remove listener after click
+          }
+        };
+      }
+    } else {
+      this.ctx.canvas.onclick = null; // Ensure no click listener when game is not over
     }
   }
 
@@ -465,5 +519,6 @@ export class GameEngine {
       cancelAnimationFrame(this.animationFrameId);
     }
     this.inputHandler.destroy();
+    this.ctx.canvas.onclick = null; // Remove click listener on stop
   }
 }

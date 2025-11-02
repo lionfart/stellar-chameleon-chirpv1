@@ -18,6 +18,7 @@ export class Player {
   private shieldAbility: ShieldAbility | null = null;
   private sprite: HTMLImageElement | undefined;
   private soundManager: SoundManager; // New: SoundManager instance
+  private hitTimer: number = 0; // For hit animation
 
   // Dash properties
   private dashSpeedMultiplier: number = 2.5;
@@ -58,6 +59,11 @@ export class Player {
     // Update dash cooldown
     if (this.currentDashCooldown > 0) {
       this.currentDashCooldown -= deltaTime;
+    }
+
+    // Update hit animation timer
+    if (this.hitTimer > 0) {
+      this.hitTimer -= deltaTime;
     }
 
     // Check for dash input
@@ -129,14 +135,24 @@ export class Player {
       ctx.restore();
     });
 
+    ctx.save();
+    ctx.translate(this.x - cameraX, this.y - cameraY);
+
+    // Apply hit flash effect
+    if (this.hitTimer > 0) {
+      ctx.filter = 'brightness(200%) hue-rotate(180deg)'; // Make it brighter and redder
+    }
+
     if (this.sprite) {
-      ctx.drawImage(this.sprite, this.x - cameraX - this.size / 2, this.y - cameraY - this.size / 2, this.size, this.size);
+      ctx.drawImage(this.sprite, -this.size / 2, -this.size / 2, this.size, this.size);
     } else {
       ctx.fillStyle = this.color;
       ctx.beginPath();
-      ctx.arc(this.x - cameraX, this.y - cameraY, this.size / 2, 0, Math.PI * 2);
+      ctx.arc(0, 0, this.size / 2, 0, Math.PI * 2);
       ctx.fill();
     }
+
+    ctx.restore(); // Restore context to remove filter
 
     const healthBarWidth = this.size * 1.5;
     const healthBarHeight = 5;
@@ -157,6 +173,7 @@ export class Player {
 
     if (remainingDamage > 0) {
       this.currentHealth -= remainingDamage;
+      this.hitTimer = 0.15; // Set hit flash duration
       if (this.currentHealth < 0) {
         this.currentHealth = 0;
       }
