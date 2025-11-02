@@ -2,8 +2,8 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/Progress';
 import { Badge } from '@/components/ui/badge';
-import { Heart, Zap, Shield, Gem, Clock, Swords, Bomb } from 'lucide-react';
-import CooldownDisplay from './CooldownDisplay'; // Import the new component
+import { Heart, Zap, Shield, Gem, Clock, Swords, Bomb, Footprints } from 'lucide-react'; // Added Footprints icon
+import CooldownDisplay from './CooldownDisplay';
 
 export interface HUDProps {
   playerHealth: number;
@@ -95,7 +95,7 @@ const HUD: React.FC<HUDProps> = ({
       <Card className="absolute bottom-4 left-4 bg-background/80 backdrop-blur-sm p-3 shadow-lg border-none min-w-[200px] max-h-[calc(50vh-2rem)] overflow-y-auto">
         <CardContent className="p-0 space-y-2">
           <CooldownDisplay
-            Icon={Zap}
+            Icon={Footprints}
             name="Dash"
             currentCooldown={dashCooldownCurrent}
             maxCooldown={dashCooldownMax}
