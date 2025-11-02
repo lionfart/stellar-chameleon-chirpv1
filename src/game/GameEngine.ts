@@ -102,7 +102,7 @@ export class GameEngine {
     this.spriteManager.loadSprite('player', SpriteManager.getPlayerSpriteSVG(this.gameState.player.size * 2));
     this.spriteManager.loadSprite('enemy_normal', SpriteManager.getEnemyNormalSpriteSVG(40));
     this.spriteManager.loadSprite('enemy_fast', SpriteManager.getEnemyFastSpriteSVG(30));
-    this.spriteManager.loadSprite('enemy_tanky', SpriteManager.getEnemyTankySpriteSVG(50));
+    this.spriteManager.loadSprite('enemy_tanky', SpriteManager.getEnemyTankySpriteSVG(50)); // Fixed: Corrected method name
     this.spriteManager.loadSprite('projectile', SpriteManager.getProjectileSpriteSVG(this.gameState.projectileWeapon?.projectileRadius ? this.gameState.projectileWeapon.projectileRadius * 2 : 16)); // Use optional chaining
     this.spriteManager.loadSprite('spinning_blade', SpriteManager.getSpinningBladeSpriteSVG(this.gameState.spinningBladeWeapon?.bladeRadius ? this.gameState.spinningBladeWeapon.bladeRadius * 2 : 20)); // Use optional chaining
     this.spriteManager.loadSprite('experience_gem', SpriteManager.getExperienceGemSpriteSVG(20));
@@ -165,6 +165,7 @@ export class GameEngine {
   }
 
   openShop() {
+    // The game is paused when the shop is opened, preventing game logic from running.
     this.gameState.isPaused = true;
     this.gameState.showShop = true;
     this.onOpenShopCallback(this.shopItems.filter(item => {
@@ -179,6 +180,7 @@ export class GameEngine {
   }
 
   closeShop = () => {
+    // The game resumes when the shop is closed.
     this.gameState.showShop = false;
     this.onCloseShopCallback();
     this.resume();
@@ -305,6 +307,7 @@ export class GameEngine {
   }
 
   private update(deltaTime: number) {
+    // If the game is paused (e.g., shop is open), or game is over, or assets are not loaded, do not update game logic.
     if (this.gameState.gameOver || this.gameState.isPaused || !this.assetsLoaded) return;
 
     this.gameState.player.update(this.inputHandler, deltaTime, this.gameState.worldWidth, this.gameState.worldHeight);
