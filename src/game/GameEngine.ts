@@ -6,7 +6,7 @@ import { ProjectileWeapon } from './ProjectileWeapon';
 import { SpinningBladeWeapon } from './SpinningBladeWeapon';
 import { ExplosionAbility } from './ExplosionAbility';
 import { ShieldAbility } from './ShieldAbility';
-import { HealAbility } from './HealAbility'; // Import HealAbility
+import { HealAbility } from './HealAbility';
 import { Vendor } from './Vendor';
 import { clamp } from './utils';
 import { SpriteManager } from './SpriteManager';
@@ -15,9 +15,9 @@ import { GameState } from './GameState';
 import { WaveManager } from './WaveManager';
 import { PowerUpManager } from './PowerUpManager';
 import { GameOverScreen } from './GameOverScreen';
-import { DamageNumber } from './DamageNumber'; // Import DamageNumber
-import { ShooterEnemy } from './ShooterEnemy'; // Import ShooterEnemy
-import { showSuccess, showError } from '@/utils/toast'; // Import toast utilities
+import { DamageNumber } from './DamageNumber';
+import { ShooterEnemy } from './ShooterEnemy';
+import { showSuccess, showError } from '@/utils/toast';
 
 // Define shop item types
 interface ShopItem {
@@ -54,8 +54,8 @@ export interface GameDataProps {
   explosionCooldownMax: number;
   shieldCooldownCurrent: number;
   shieldCooldownMax: number;
-  healCooldownCurrent: number; // New: Heal ability cooldown
-  healCooldownMax: number; // New: Heal ability max cooldown
+  healCooldownCurrent: number;
+  healCooldownMax: number;
 
   // Minimap specific data
   playerX: number;
@@ -81,7 +81,7 @@ export class GameEngine {
   private onLevelUpCallback: () => void;
   private onOpenShopCallback: (items: ShopItem[], playerGold: number) => void;
   private onCloseShopCallback: () => void;
-  private onUpdateGameDataCallback: (gameData: GameDataProps) => void; // Updated callback
+  private onUpdateGameDataCallback: (gameData: GameDataProps) => void;
   private spriteManager: SpriteManager;
   private soundManager: SoundManager;
   private assetsLoaded: boolean = false;
@@ -108,7 +108,7 @@ export class GameEngine {
     { id: 'buy_spinning_blade_weapon', name: 'Spinning Blade Weapon', description: 'Blades orbit you, damaging enemies on contact.', cost: 100, type: 'weapon' },
     { id: 'buy_explosion_ability', name: 'Explosion Ability', description: 'Trigger an explosion around you (E key).', cost: 150, type: 'ability' },
     { id: 'buy_shield_ability', name: 'Shield Ability', description: 'Activate a protective shield (Q key).', cost: 150, type: 'ability' },
-    { id: 'buy_heal_ability', name: 'Heal Ability', description: 'Restore player health (R key).', cost: 120, type: 'ability' }, // New heal ability in shop
+    { id: 'buy_heal_ability', name: 'Heal Ability', description: 'Restore player health (R key).', cost: 120, type: 'ability' },
     { id: 'buy_health_potion', name: 'Health Potion', description: 'Instantly restores 50 health.', cost: 50, type: 'consumable' },
   ];
 
@@ -119,7 +119,7 @@ export class GameEngine {
     this.onLevelUpCallback = onLevelUp;
     this.onOpenShopCallback = onOpenShop;
     this.onCloseShopCallback = onCloseShop;
-    this.onUpdateGameDataCallback = onUpdateGameData; // Assign new callback
+    this.onUpdateGameDataCallback = onUpdateGameData;
     this.spriteManager = new SpriteManager(this.onAllAssetsLoaded);
     this.soundManager = new SoundManager(this.onAllAssetsLoaded);
 
@@ -129,7 +129,7 @@ export class GameEngine {
     // Randomly select one starting weapon
     const startingWeapons = [
       new AuraWeapon(10, 100, 0.5),
-      new ProjectileWeapon(15, 300, 1.5, 8, 3, undefined, this.soundManager),
+      new ProjectileWeapon(15, 300, 1.5, 8, 3, undefined, this.soundManager), // Placeholder sprite for now
       new SpinningBladeWeapon(10, 60, 3, 10, 1, undefined, this.soundManager),
     ];
     const initialWeapon = startingWeapons[Math.floor(Math.random() * startingWeapons.length)];
@@ -152,9 +152,10 @@ export class GameEngine {
     this.spriteManager.loadSprite('enemy_normal', SpriteManager.getEnemyNormalSpriteSVG(40));
     this.spriteManager.loadSprite('enemy_fast', SpriteManager.getEnemyFastSpriteSVG(30));
     this.spriteManager.loadSprite('enemy_tanky', SpriteManager.getEnemyTankySpriteSVG(50));
-    this.spriteManager.loadSprite('enemy_shooter', SpriteManager.getEnemyShooterSpriteSVG(45)); // New shooter enemy sprite
-    this.spriteManager.loadSprite('projectile', SpriteManager.getProjectileSpriteSVG(this.gameState.projectileWeapon?.projectileRadius ? this.gameState.projectileWeapon.projectileRadius * 2 : 16)); // Use optional chaining
-    this.spriteManager.loadSprite('spinning_blade', SpriteManager.getSpinningBladeSpriteSVG(this.gameState.spinningBladeWeapon?.bladeRadius ? this.gameState.spinningBladeWeapon.bladeRadius * 2 : 20)); // Use optional chaining
+    this.spriteManager.loadSprite('enemy_shooter', SpriteManager.getEnemyShooterSpriteSVG(45));
+    this.spriteManager.loadSprite('projectile', SpriteManager.getProjectileSpriteSVG(this.gameState.projectileWeapon?.projectileRadius ? this.gameState.projectileWeapon.projectileRadius * 2 : 16)); // Generic enemy projectile
+    this.spriteManager.loadSprite('player_projectile', SpriteManager.getPlayerProjectileSpriteSVG(this.gameState.projectileWeapon?.projectileRadius ? this.gameState.projectileWeapon.projectileRadius * 2 : 16)); // NEW: Player specific projectile
+    this.spriteManager.loadSprite('spinning_blade', SpriteManager.getSpinningBladeSpriteSVG(this.gameState.spinningBladeWeapon?.bladeRadius ? this.gameState.spinningBladeWeapon.bladeRadius * 2 : 20));
     this.spriteManager.loadSprite('experience_gem', SpriteManager.getExperienceGemSpriteSVG(20));
     this.spriteManager.loadSprite('magnet_powerup', SpriteManager.getMagnetPowerUpSpriteSVG(40));
     this.spriteManager.loadSprite('background_tile', SpriteManager.getBackgroundTileSVG(100));
@@ -185,7 +186,8 @@ export class GameEngine {
 
       this.gameState.player.setSprite(this.spriteManager.getSprite('player'));
       if (this.gameState.projectileWeapon) {
-        this.gameState.projectileWeapon['projectileSprite'] = this.spriteManager.getSprite('projectile');
+        // Use player_projectile sprite for player's projectile weapon
+        this.gameState.projectileWeapon['projectileSprite'] = this.spriteManager.getSprite('player_projectile');
       }
       if (this.gameState.spinningBladeWeapon) {
         this.gameState.spinningBladeWeapon['bladeSprite'] = this.spriteManager.getSprite('spinning_blade');
@@ -246,7 +248,7 @@ export class GameEngine {
       if (item.id === 'buy_spinning_blade_weapon' && this.gameState.spinningBladeWeapon) return false;
       if (item.id === 'buy_explosion_ability' && this.gameState.explosionAbility) return false;
       if (item.id === 'buy_shield_ability' && this.gameState.shieldAbility) return false;
-      if (item.id === 'buy_heal_ability' && this.gameState.healAbility) return false; // Filter if already owned
+      if (item.id === 'buy_heal_ability' && this.gameState.healAbility) return false;
       return true;
     }), this.gameState.player.gold);
   }
@@ -273,7 +275,7 @@ export class GameEngine {
           this.gameState.auraWeapon = new AuraWeapon(10, 100, 0.5);
           break;
         case 'buy_projectile_weapon':
-          this.gameState.projectileWeapon = new ProjectileWeapon(15, 300, 1.5, 8, 3, this.spriteManager.getSprite('projectile'), this.soundManager);
+          this.gameState.projectileWeapon = new ProjectileWeapon(15, 300, 1.5, 8, 3, this.spriteManager.getSprite('player_projectile'), this.soundManager); // Use player_projectile
           break;
         case 'buy_spinning_blade_weapon':
           this.gameState.spinningBladeWeapon = new SpinningBladeWeapon(10, 60, 3, 10, 1, this.spriteManager.getSprite('spinning_blade'), this.soundManager);
@@ -286,7 +288,7 @@ export class GameEngine {
           this.gameState.player.setShieldAbility(this.gameState.shieldAbility);
           break;
         case 'buy_heal_ability':
-          this.gameState.healAbility = new HealAbility(30, 15, this.soundManager); // Initialize heal ability
+          this.gameState.healAbility = new HealAbility(30, 15, this.soundManager);
           this.gameState.player.setHealAbility(this.gameState.healAbility);
           break;
         case 'buy_health_potion':
@@ -319,7 +321,7 @@ export class GameEngine {
 
     const startingWeapons = [
       new AuraWeapon(10, 100, 0.5),
-      new ProjectileWeapon(15, 300, 1.5, 8, 3, undefined, this.soundManager),
+      new ProjectileWeapon(15, 300, 1.5, 8, 3, undefined, this.soundManager), // Placeholder sprite for now
       new SpinningBladeWeapon(10, 60, 3, 10, 1, undefined, this.soundManager),
     ];
     const initialWeapon = startingWeapons[Math.floor(Math.random() * startingWeapons.length)];
@@ -332,7 +334,7 @@ export class GameEngine {
 
     this.gameState.player.setSprite(this.spriteManager.getSprite('player'));
     if (this.gameState.projectileWeapon) {
-      this.gameState.projectileWeapon['projectileSprite'] = this.spriteManager.getSprite('projectile');
+      this.gameState.projectileWeapon['projectileSprite'] = this.spriteManager.getSprite('player_projectile'); // Use player_projectile
     }
     if (this.gameState.spinningBladeWeapon) {
       this.gameState.spinningBladeWeapon['bladeSprite'] = this.spriteManager.getSprite('spinning_blade');
@@ -397,13 +399,13 @@ export class GameEngine {
         this.gameState.healAbility?.reduceCooldown(2);
         break;
       case 'player_magnet_radius':
-        this.gameState.player.increaseMagnetRadius(50); // Increase by 50 units
+        this.gameState.player.increaseMagnetRadius(50);
         break;
       case 'experience_boost':
-        this.gameState.player.increaseExperienceGain(0.1); // Increase by 10%
+        this.gameState.player.increaseExperienceGain(0.1);
         break;
       case 'gold_boost':
-        this.gameState.player.increaseGoldGain(0.1); // Increase by 10%
+        this.gameState.player.increaseGoldGain(0.1);
         break;
       default:
         console.warn(`Unknown upgrade ID: ${upgradeId}`);
@@ -465,7 +467,7 @@ export class GameEngine {
     this.gameState.spinningBladeWeapon?.update(deltaTime, this.gameState.player.x, this.gameState.player.y, this.gameState.enemies);
     this.gameState.explosionAbility?.update(deltaTime, this.gameState.enemies);
     this.gameState.shieldAbility?.update(deltaTime, this.gameState.player.x, this.gameState.player.y);
-    this.gameState.healAbility?.update(deltaTime); // Update heal ability cooldown
+    this.gameState.healAbility?.update(deltaTime);
 
     const defeatedEnemies = this.gameState.enemies.filter(enemy => !enemy.isAlive());
     defeatedEnemies.forEach(enemy => {
@@ -504,8 +506,8 @@ export class GameEngine {
       explosionCooldownMax: this.gameState.explosionAbility ? this.gameState.explosionAbility.getCooldownMax() : 0,
       shieldCooldownCurrent: this.gameState.shieldAbility ? Math.max(0, this.gameState.shieldAbility.getCooldownCurrent()) : 0,
       shieldCooldownMax: this.gameState.shieldAbility ? this.gameState.shieldAbility.getCooldownMax() : 0,
-      healCooldownCurrent: this.gameState.healAbility ? Math.max(0, this.gameState.healAbility.getCooldownCurrent()) : 0, // New: Heal cooldown
-      healCooldownMax: this.gameState.healAbility ? this.gameState.healAbility.getCooldownMax() : 0, // New: Heal max cooldown
+      healCooldownCurrent: this.gameState.healAbility ? Math.max(0, this.gameState.healAbility.getCooldownCurrent()) : 0,
+      healCooldownMax: this.gameState.healAbility ? this.gameState.healAbility.getCooldownMax() : 0,
 
       // Minimap specific data
       playerX: this.gameState.player.x,
@@ -631,7 +633,6 @@ export class GameEngine {
     this.soundManager.stopSound(this.backgroundMusicInstance);
   }
 
-  // Public getter for gameState
   public getGameState(): GameState {
     return this.gameState;
   }

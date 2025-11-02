@@ -122,6 +122,7 @@ export class SpriteManager {
   }
 
   static getProjectileSpriteSVG(size: number): string {
+    // Generic projectile for enemies
     return `
       <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
         <defs>
@@ -132,6 +133,22 @@ export class SpriteManager {
         </defs>
         <circle cx="${size / 2}" cy="${size / 2}" r="${size / 2 - 1}" fill="url(#projectileGradient)" stroke="#006064" stroke-width="1"/>
         <circle cx="${size / 2}" cy="${size / 2}" r="${size / 4}" fill="#FFFFFF" opacity="0.7"/>
+      </svg>
+    `;
+  }
+
+  static getPlayerProjectileSpriteSVG(size: number): string {
+    // Distinct projectile for player (e.g., green/yellow)
+    return `
+      <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="playerProjectileGradient" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+            <stop offset="0%" stop-color="#8BC34A" />
+            <stop offset="100%" stop-color="#689F38" />
+          </radialGradient>
+        </defs>
+        <polygon points="${size / 2},0 ${size},${size / 2} ${size / 2},${size} 0,${size / 2}" fill="url(#playerProjectileGradient)" stroke="#33691E" stroke-width="1"/>
+        <circle cx="${size / 2}" cy="${size / 2}" r="${size / 4}" fill="#FFEB3B" opacity="0.9"/>
       </svg>
     `;
   }
