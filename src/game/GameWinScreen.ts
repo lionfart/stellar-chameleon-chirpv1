@@ -30,19 +30,17 @@ export class GameWinScreen {
     ctx.fillText('Restart Game', canvasWidth / 2, buttonY + buttonHeight / 2 + 10); // Center text vertically
 
     // Add event listener for restart button
-    if (!this.canvas.onclick) { // Prevent adding multiple listeners
-      this.canvas.onclick = (event) => {
-        const rect = this.canvas.getBoundingClientRect();
-        const mouseX = event.clientX - rect.left;
-        const mouseY = event.clientY - rect.top;
+    // `if (!this.canvas.onclick)` koşulunu kaldırıyoruz, böylece dinleyici her zaman ayarlanır.
+    this.canvas.onclick = (event) => {
+      const rect = this.canvas.getBoundingClientRect();
+      const mouseX = event.clientX - rect.left;
+      const mouseY = event.clientY - rect.top;
 
-        if (mouseX >= buttonX && mouseX <= buttonX + buttonWidth &&
-            mouseY >= buttonY && mouseY <= buttonY + buttonHeight) {
-          this.restartGameCallback();
-          // this.canvas.onclick = null; // Bu satır kaldırıldı
-        }
-      };
-    }
+      if (mouseX >= buttonX && mouseX <= buttonX + buttonWidth &&
+          mouseY >= buttonY && mouseY <= buttonY + buttonHeight) {
+        this.restartGameCallback();
+      }
+    };
   }
 
   clearClickListener() {
