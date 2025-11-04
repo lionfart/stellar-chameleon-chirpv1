@@ -144,6 +144,8 @@ export class GameEngine {
     const player = new Player(this.worldWidth / 2, this.worldHeight / 2, 30, 200, 'blue', 100, this.triggerLevelUp, undefined, this.soundManager);
     const vendor = new Vendor(this.worldWidth / 2 + 200, this.worldHeight / 2, 50, undefined);
 
+    this.gameState = new GameState(player, vendor, this.worldWidth, this.worldHeight);
+    
     const startingWeapons = [
       new AuraWeapon(10, 100, 0.5),
       new ProjectileWeapon(15, 300, 1.5, 8, 3, undefined, this.soundManager),
@@ -152,7 +154,15 @@ export class GameEngine {
     ];
     const initialWeapon = startingWeapons[Math.floor(Math.random() * startingWeapons.length)];
 
-    this.gameState = new GameState(player, vendor, this.worldWidth, this.worldHeight, initialWeapon);
+    if (initialWeapon instanceof AuraWeapon) {
+      this.gameState.auraWeapon = initialWeapon;
+    } else if (initialWeapon instanceof ProjectileWeapon) {
+      this.gameState.projectileWeapon = initialWeapon;
+    } else if (initialWeapon instanceof SpinningBladeWeapon) {
+      this.gameState.spinningBladeWeapon = initialWeapon;
+    } else if (initialWeapon instanceof HomingMissileWeapon) {
+      this.gameState.homingMissileWeapon = initialWeapon;
+    }
     
     // Initialize EntityManager before WaveManager
     this.entityManager = new EntityManager(this.gameState, this.spriteManager, this.soundManager);
@@ -371,6 +381,8 @@ export class GameEngine {
     const player = new Player(this.worldWidth / 2, this.worldHeight / 2, 30, 200, 'blue', 100, this.triggerLevelUp, undefined, this.soundManager);
     const vendor = new Vendor(this.worldWidth / 2 + 200, this.worldHeight / 2, 50, undefined);
 
+    this.gameState = new GameState(player, vendor, this.worldWidth, this.worldHeight);
+    
     const startingWeapons = [
       new AuraWeapon(10, 100, 0.5),
       new ProjectileWeapon(15, 300, 1.5, 8, 3, undefined, this.soundManager),
@@ -379,7 +391,15 @@ export class GameEngine {
     ];
     const initialWeapon = startingWeapons[Math.floor(Math.random() * startingWeapons.length)];
 
-    this.gameState = new GameState(player, vendor, this.worldWidth, this.worldHeight, initialWeapon);
+    if (initialWeapon instanceof AuraWeapon) {
+      this.gameState.auraWeapon = initialWeapon;
+    } else if (initialWeapon instanceof ProjectileWeapon) {
+      this.gameState.projectileWeapon = initialWeapon;
+    } else if (initialWeapon instanceof SpinningBladeWeapon) {
+      this.gameState.spinningBladeWeapon = initialWeapon;
+    } else if (initialWeapon instanceof HomingMissileWeapon) {
+      this.gameState.homingMissileWeapon = initialWeapon;
+    }
     
     this.entityManager = new EntityManager(this.gameState, this.spriteManager, this.soundManager); // Re-initialize EntityManager
     this.waveManager = new WaveManager(this.gameState, this.spriteManager, this.soundManager, this.entityManager, this.handleBossDefeat); // Pass EntityManager directly

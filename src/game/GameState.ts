@@ -59,10 +59,6 @@ export class GameState {
     vendor: Vendor,
     worldWidth: number,
     worldHeight: number,
-    initialWeapon?: AuraWeapon | ProjectileWeapon | SpinningBladeWeapon | HomingMissileWeapon,
-    initialExplosionAbility?: ExplosionAbility,
-    initialShieldAbility?: ShieldAbility,
-    initialHealAbility?: HealAbility
   ) {
     this.player = player;
     this.vendor = vendor;
@@ -72,21 +68,8 @@ export class GameState {
     this.spinningBladeWeapon = undefined;
     this.homingMissileWeapon = undefined;
     this.explosionAbility = undefined;
-    this.shieldAbility = initialShieldAbility;
-    this.healAbility = initialHealAbility;
-
-    if (initialWeapon instanceof AuraWeapon) {
-      this.auraWeapon = initialWeapon;
-    } else if (initialWeapon instanceof ProjectileWeapon) {
-      this.projectileWeapon = initialWeapon;
-    } else if (initialWeapon instanceof SpinningBladeWeapon) {
-      this.spinningBladeWeapon = initialWeapon;
-    } else if (initialWeapon instanceof HomingMissileWeapon) {
-      this.homingMissileWeapon = initialWeapon;
-    }
-
-    this.explosionAbility = initialExplosionAbility;
-    this.shieldAbility = initialShieldAbility;
+    this.shieldAbility = undefined;
+    this.healAbility = undefined;
 
     this.enemies = [];
     this.experienceGems = [];
