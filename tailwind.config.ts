@@ -85,10 +85,25 @@ export default {
             height: "0",
           },
         },
+        "pulse-ready": {
+          "0%, 100%": { transform: "scale(1)", opacity: "1" },
+          "50%": { transform: "scale(1.05)", opacity: "0.8" },
+        },
+        "pulse-cooldown": {
+          "0%, 100%": { opacity: "0.5" },
+          "50%": { opacity: "0.2" },
+        },
+        "glow-icon": {
+          "0%, 100%": { filter: "drop-shadow(0 0 1px var(--tw-shadow-color))" },
+          "50%": { filter: "drop-shadow(0 0 8px var(--tw-shadow-color))" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "pulse-ready": "pulse-ready 1.5s ease-in-out infinite",
+        "pulse-cooldown": "pulse-cooldown 1s ease-in-out infinite",
+        "glow-icon": "glow-icon 1.5s ease-in-out infinite",
       },
     },
   },

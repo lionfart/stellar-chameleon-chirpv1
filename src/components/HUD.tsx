@@ -91,7 +91,7 @@ const HUD: React.FC<HUDProps> = ({
         <Card className="bg-background/90 backdrop-blur-md p-3 shadow-xl border border-solid border-primary/20 min-w-[250px] max-h-[calc(50vh-2rem)] overflow-y-auto">
           <CardContent className="p-0 space-y-2">
             <div className="flex items-center space-x-2">
-              <Heart className="h-6 w-6 text-red-500 drop-shadow-sm" />
+              <Heart className="h-6 w-6 text-red-500" />
               <div className="flex-1">
                 <Progress value={healthPercentage} className="h-3" indicatorClassName="bg-red-500" />
                 <span className="text-sm text-muted-foreground">{playerHealth}/{playerMaxHealth} HP</span>
@@ -99,7 +99,7 @@ const HUD: React.FC<HUDProps> = ({
             </div>
 
             <div className="flex items-center space-x-2">
-              <Zap className="h-6 w-6 text-blue-500 drop-shadow-sm" />
+              <Zap className="h-6 w-6 text-blue-500" />
               <div className="flex-1">
                 <Progress value={xpPercentage} className="h-3" indicatorClassName="bg-blue-500" />
                 <span className="text-sm text-muted-foreground">{playerExperience}/{playerExperienceToNextLevel} XP</span>
@@ -108,13 +108,13 @@ const HUD: React.FC<HUDProps> = ({
             </div>
 
             <div className="flex items-center space-x-2">
-              <Gem className="h-6 w-6 text-yellow-500 drop-shadow-sm" />
+              <Gem className="h-6 w-6 text-yellow-500" />
               <span className="text-base font-medium">{playerGold} Gold</span>
             </div>
 
             {shieldMaxHealth > 0 && (
               <div className="flex items-center space-x-2">
-                <Shield className={`h-6 w-6 ${shieldActive ? 'text-cyan-400' : 'text-gray-500'} drop-shadow-sm`} />
+                <Shield className={`h-6 w-6 ${shieldActive ? 'text-cyan-400' : 'text-gray-500'}`} />
                 <div className="flex-1">
                   <Progress value={shieldPercentage} className="h-3" indicatorClassName="bg-cyan-400" />
                   <span className="text-sm text-muted-foreground">
@@ -134,7 +134,7 @@ const HUD: React.FC<HUDProps> = ({
               name="Dash"
               currentCooldown={dashCooldownCurrent}
               maxCooldown={dashCooldownMax}
-              colorClass="text-purple-500 drop-shadow-sm"
+              colorClass="text-purple-500"
               iconSizeClass="h-4 w-4"
               progressBarHeightClass="h-4"
             />
@@ -145,7 +145,7 @@ const HUD: React.FC<HUDProps> = ({
                 name="Explosion"
                 currentCooldown={explosionCooldownCurrent}
                 maxCooldown={explosionCooldownMax}
-                colorClass="text-orange-500 drop-shadow-sm"
+                colorClass="text-orange-500"
               />
             )}
 
@@ -155,7 +155,7 @@ const HUD: React.FC<HUDProps> = ({
                 name="Shield"
                 currentCooldown={shieldCooldownCurrent}
                 maxCooldown={shieldCooldownMax}
-                colorClass="text-blue-500 drop-shadow-sm"
+                colorClass="text-blue-500"
               />
             )}
 
@@ -165,7 +165,7 @@ const HUD: React.FC<HUDProps> = ({
                 name="Heal"
                 currentCooldown={healCooldownCurrent}
                 maxCooldown={healCooldownMax}
-                colorClass="text-green-500 drop-shadow-sm"
+                colorClass="text-green-500"
               />
             )}
 
@@ -175,7 +175,7 @@ const HUD: React.FC<HUDProps> = ({
                 name="Time Slow"
                 currentCooldown={timeSlowCooldownCurrent}
                 maxCooldown={timeSlowCooldownMax}
-                colorClass="text-indigo-400 drop-shadow-sm"
+                colorClass="text-indigo-400"
               />
             )}
 
@@ -186,7 +186,7 @@ const HUD: React.FC<HUDProps> = ({
                 name="Laser Beam"
                 currentCooldown={laserBeamCooldownCurrent}
                 maxCooldown={laserBeamCooldownMax}
-                colorClass="text-cyan-400 drop-shadow-sm"
+                colorClass="text-cyan-400"
               />
             )} */}
           </CardContent>
@@ -198,16 +198,16 @@ const HUD: React.FC<HUDProps> = ({
         <Card className="bg-background/90 backdrop-blur-md p-3 shadow-xl border border-solid border-primary/20 min-w-[180px] text-center">
           <CardContent className="p-0 space-y-2">
             <div className="flex items-center justify-center space-x-2">
-              <Swords className="h-6 w-6 text-purple-500 drop-shadow-sm" />
+              <Swords className="h-6 w-6 text-purple-500" />
               <span className="text-base font-medium">Wave {waveNumber}</span>
             </div>
             <div className="flex items-center justify-center space-x-2">
-              <Clock className="h-6 w-6 text-gray-500 drop-shadow-sm" />
+              <Clock className="h-6 w-6 text-gray-500" />
               <span className="text-base font-medium">{Math.max(0, Math.floor(waveTimeRemaining))}s</span>
             </div>
             {/* Collected Letters Display */}
             <div className="flex items-center justify-center space-x-1 mt-2">
-              <Crown className="h-5 w-5 text-yellow-400 drop-shadow-sm" />
+              <Crown className="h-5 w-5 text-yellow-400" />
               <span className="text-sm font-medium text-white">Simge:</span>
               {princessName.map((letter, index) => (
                 <Badge
