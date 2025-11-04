@@ -59,6 +59,8 @@ export class GameState {
   nextLetterIndex: number = 0;
   gameWon: boolean = false;
 
+  isTimeSlowActive: boolean; // NEW: Track if time slow is active for global visual effects
+
 
   constructor(
     player: Player,
@@ -102,6 +104,8 @@ export class GameState {
 
     this.activeMagnetRadius = 0;
     this.activeMagnetDuration = 0;
+
+    this.isTimeSlowActive = false; // NEW: Initialize
   }
 
   reset() {
@@ -136,5 +140,7 @@ export class GameState {
     this.collectedLetters = [];
     this.nextLetterIndex = 0;
     this.gameWon = false;
+
+    this.isTimeSlowActive = false; // NEW: Reset
   }
 }

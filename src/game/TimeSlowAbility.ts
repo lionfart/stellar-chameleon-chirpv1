@@ -2,12 +2,12 @@ import { Enemy } from './Enemy';
 import { SoundManager } from './SoundManager';
 
 export class TimeSlowAbility {
-  private slowFactor: number; // e.g., 0.5 means 50% speed
+  private slowFactor: number; // e.g., 0.3 means 30% speed (70% slow)
   private duration: number; // seconds
   private cooldown: number; // seconds
   private currentCooldown: number;
   private currentDuration: number;
-  private isActive: boolean;
+  private isActive: boolean; // Track if the ability is currently active
   private soundManager: SoundManager;
 
   constructor(slowFactor: number, duration: number, cooldown: number, soundManager: SoundManager) {
@@ -56,9 +56,6 @@ export class TimeSlowAbility {
     this.isActive = false;
     // Restore enemy speeds
     enemies.forEach(enemy => {
-      // To restore correctly, we need to know the original speed.
-      // For simplicity, we'll divide by slowFactor. This assumes no other speed modifiers.
-      // A more robust solution would store original speed on enemy or apply/remove modifiers.
       enemy.speed /= this.slowFactor;
     });
     this.soundManager.playSound('time_slow_deactivate');
@@ -66,7 +63,7 @@ export class TimeSlowAbility {
   }
 
   increaseSlowFactor(amount: number) {
-    this.slowFactor = Math.max(0.1, this.slowFactor - amount); // Make enemies even slower
+    this.slowFactor = Math.max(0.05, this.slowFactor - amount); // Make enemies even slower, min 5% speed
     console.log(`Time Slow factor increased (enemies slower) to ${this.slowFactor}`);
   }
 

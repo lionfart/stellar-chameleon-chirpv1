@@ -372,7 +372,7 @@ export class GameEngine {
           this.gameState.player.setHealAbility(this.gameState.healAbility);
           break;
         case 'buy_time_slow_ability':
-          this.gameState.timeSlowAbility = new TimeSlowAbility(0.5, 5, 20, this.soundManager);
+          this.gameState.timeSlowAbility = new TimeSlowAbility(0.3, 5, 20, this.soundManager); // Updated slowFactor
           this.gameState.player.setTimeSlowAbility(this.gameState.timeSlowAbility);
           break;
         case 'buy_health_potion':
@@ -537,7 +537,7 @@ export class GameEngine {
         this.gameState.healAbility?.reduceCooldown(2);
         break;
       case 'time_slow_factor':
-        this.gameState.timeSlowAbility?.increaseSlowFactor(0.1);
+        this.gameState.timeSlowAbility?.increaseSlowFactor(0.05); // Make it decrease slowFactor by 0.05
         break;
       case 'time_slow_duration':
         this.gameState.timeSlowAbility?.increaseDuration(1);
@@ -620,6 +620,9 @@ export class GameEngine {
       this.gameState.gameOver = true;
       console.log("Game Over!");
     }
+
+    // Update TimeSlow active state in GameState
+    this.gameState.isTimeSlowActive = this.gameState.timeSlowAbility?.getIsActive() || false;
 
     this.onUpdateGameDataCallback({
       playerHealth: this.gameState.player.currentHealth,
@@ -731,6 +734,14 @@ export class GameEngine {
 
     if (this.gameState.isBossWarningActive && this.gameState.bossWarning) {
       this.gameState.bossWarning.draw(this.ctx);
+    }
+
+    // Draw Time Slow overlay if active
+    if (this.gameState.isTimeSlowActive) {
+      this.ctx.save();
+      this.ctx.fillStyle = 'rgba(75, 0, 130, 0.2)'; // Dark purple overlay
+      this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+      this.ctx.restore();
     }
   }
 

@@ -398,6 +398,7 @@ export class SpriteManager {
         <circle cx="${size / 2}" cy="${size / 2}" r="${size / 2 - 2}" fill="url(#timeSlowGradient)" stroke="#311B92" stroke-width="2"/>
         <path d="M${size * 0.5},${size * 0.2} L${size * 0.5},${size * 0.5} L${size * 0.7},${size * 0.7} M${size * 0.5},${size * 0.5} L${size * 0.3},${size * 0.7}" stroke="#FFFFFF" stroke-width="2" fill="none"/>
         <circle cx="${size * 0.5}" cy="${size * 0.2}" r="${size * 0.05}" fill="#FFFFFF"/>
+        <text x="${size * 0.5}" y="${size * 0.85}" font-family="Arial" font-size="${size * 0.2}" fill="#FFFFFF" text-anchor="middle" alignment-baseline="middle">T</text>
       </svg>
     `;
   }
