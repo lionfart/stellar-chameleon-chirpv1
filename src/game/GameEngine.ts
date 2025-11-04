@@ -16,13 +16,19 @@ import { GameState } from './GameState';
 import { WaveManager } from './WaveManager';
 import { PowerUpManager } from './PowerUpManager';
 import { GameOverScreen } from './GameOverScreen';
-import { GameWinScreen } from './GameWinScreen'; // Import GameWinScreen
+import { GameWinScreen } from './GameWinScreen';
 import { DamageNumber } from './DamageNumber';
 import { ShooterEnemy } from './ShooterEnemy';
-import { Boss } from './Boss'; // Import Boss
-import { BossWarning } from './BossWarning'; // Import BossWarning
-import { BossAttackVisual } from './BossAttackVisual'; // Import BossAttackVisual
+import { Boss } from './Boss';
+import { BossWarning } from './BossWarning';
+import { BossAttackVisual } from './BossAttackVisual';
 import { showSuccess, showError } from '@/utils/toast';
+
+// Yeni modüllerin importları
+import { GameRenderer } from './GameRenderer';
+import { ShopManager } from './ShopManager';
+import { UpgradeManager } from './UpgradeManager';
+import { CollisionManager } from './CollisionManager';
 
 // Define shop item types
 interface ShopItem {
@@ -101,38 +107,27 @@ export class GameEngine {
   private soundManager: SoundManager;
   private assetsLoaded: boolean = false;
   private gameOverSoundPlayed: boolean = false;
-  private gameWinSoundPlayed: boolean = false; // New: Track if win sound played
+  private gameWinSoundPlayed: boolean = false;
   private backgroundMusicInstance: HTMLAudioElement | null = null;
 
-  // Add these properties to the class
   private gameState: GameState;
   private waveManager: WaveManager;
   private powerUpManager: PowerUpManager;
-  private gameOverScreen: GameOverScreen;
-  private gameWinScreen: GameWinScreen; // New: GameWinScreen instance
 
-  // Yeni: Oyun sonu ve kazanma durumlarının önceki karedeki durumunu takip eder
+  // Yeni yöneticiler
+  private gameRenderer: GameRenderer;
+  private shopManager: ShopManager;
+  private upgradeManager: UpgradeManager;
+  private collisionManager: CollisionManager;
+
   private wasGameOver: boolean = false;
   private wasGameWon: boolean = false;
 
-  // World dimensions
   private worldWidth: number = 2000;
   private worldHeight: number = 2000;
 
-  // Camera position
   private cameraX: number = 0;
   private cameraY: number = 0;
-
-  private shopItems: ShopItem[] = [
-    { id: 'buy_aura_weapon', name: 'Aura Weapon', description: 'A constant damage aura around you.', cost: 100, type: 'weapon' },
-    { id: 'buy_projectile_weapon', name: 'Projectile Weapon', description: 'Fires projectiles at the closest enemy.', cost: 100, type: 'weapon' },
-    { id: 'buy_spinning_blade_weapon', name: 'Spinning Blade Weapon', description: 'Blades orbit you, damaging enemies on contact.', cost: 100, type: 'weapon' },
-    { id: 'buy_homing_missile_weapon', name: 'Homing Missile Weapon', description: 'Fires missiles that track the closest enemy.', cost: 120, type: 'weapon' },
-    { id: 'buy_explosion_ability', name: 'Explosion Ability', description: 'Trigger an explosion around you (E key).', cost: 150, type: 'ability' },
-    { id: 'buy_shield_ability', name: 'Shield Ability', description: 'Activate a protective shield (Q key).', cost: 150, type: 'ability' },
-    { id: 'buy_heal_ability', name: 'Heal Ability', description: 'Restore player health (R key).', cost: 120, type: 'ability' },
-    { id: 'buy_health_potion', name: 'Health Potion', description: 'Instantly restores 50 health.', cost: 50, type: 'consumable' },
-  ];
 
   constructor(ctx: CanvasRenderingContext2D, onLevelUp: () => void, onOpenShop: (items: ShopItem[], playerGold: number) => void, onCloseShop: () => void, onUpdateGameData: (gameData: GameDataProps) => void) {
     console.log("GameEngine constructor called!");
@@ -148,7 +143,6 @@ export class GameEngine {
     const player = new Player(this.worldWidth / 2, this.worldHeight / 2, 30, 200, 'blue', 100, this.triggerLevelUp, undefined, this.soundManager);
     const vendor = new Vendor(this.worldWidth / 2 + 200, this.worldHeight / 2, 50, undefined);
 
-    // Randomly select one starting weapon
     const startingWeapons = [
       new AuraWeapon(10, 100, 0.5),
       new ProjectileWeapon(15, 300, 1.5, 8, 3, undefined, this.soundManager),
@@ -157,12 +151,20 @@ export class GameEngine {
     ];
     const initialWeapon = startingWeapons[Math.floor(Math.random() * startingWeapons.length)];
 
-    this.gameState = new GameState(player, vendor, this.worldWidth, this.worldHeight, initialWeapon);
+    // GameOverScreen ve GameWinScreen'i GameState'e geçirmeden önce oluştur
+    const gameOverScreen = new GameOverScreen(this.restartGame, this.ctx.canvas);
+    const gameWinScreen = new GameWinScreen(this.restartGame, this.ctx.canvas);
+
+    this.gameState = new GameState(player, vendor, this.worldWidth, this.worldHeight, gameOverScreen, gameWinScreen, initialWeapon);
     
     this.waveManager = new WaveManager(this.gameState, this.spriteManager, this.soundManager, this.addBossAttackVisual);
     this.powerUpManager = new PowerUpManager(this.gameState, this.spriteManager, this.soundManager);
-    this.gameOverScreen = new GameOverScreen(this.restartGame, this.ctx.canvas);
-    this.gameWinScreen = new GameWinScreen(this.restartGame, this.ctx.canvas); // Initialize GameWinScreen
+
+    // Yeni yöneticileri başlat
+    this.gameRenderer = new GameRenderer(this.ctx, this.gameState, this.spriteManager);
+    this.shopManager = new ShopManager(this.gameState, this.spriteManager, this.soundManager, this.onOpenShopCallback, this.onCloseShopCallback);
+    this.upgradeManager = new UpgradeManager(this.gameState);
+    this.collisionManager = new CollisionManager(this.gameState);
 
     this.lastTime = 0;
     this.animationFrameId = null;
@@ -171,14 +173,13 @@ export class GameEngine {
   }
 
   private loadAssets() {
-    // Sprites
     this.spriteManager.loadSprite('player', SpriteManager.getPlayerSpriteSVG(this.gameState.player.size * 2));
     this.spriteManager.loadSprite('enemy_normal', SpriteManager.getEnemyNormalSpriteSVG(40));
     this.spriteManager.loadSprite('enemy_fast', SpriteManager.getEnemyFastSpriteSVG(30));
     this.spriteManager.loadSprite('enemy_tanky', SpriteManager.getEnemyTankySpriteSVG(50));
     this.spriteManager.loadSprite('enemy_shooter', SpriteManager.getEnemyShooterSpriteSVG(45));
-    this.spriteManager.loadSprite('projectile', SpriteManager.getProjectileSpriteSVG(this.gameState.projectileWeapon?.projectileRadius ? this.gameState.projectileWeapon.projectileRadius * 2 : 16)); // Generic enemy projectile
-    this.spriteManager.loadSprite('player_projectile', SpriteManager.getPlayerProjectileSpriteSVG(this.gameState.projectileWeapon?.projectileRadius ? this.gameState.projectileWeapon.projectileRadius * 2 : 16)); // Player specific projectile
+    this.spriteManager.loadSprite('projectile', SpriteManager.getProjectileSpriteSVG(this.gameState.projectileWeapon?.projectileRadius ? this.gameState.projectileWeapon.projectileRadius * 2 : 16));
+    this.spriteManager.loadSprite('player_projectile', SpriteManager.getPlayerProjectileSpriteSVG(this.gameState.projectileWeapon?.projectileRadius ? this.gameState.projectileWeapon.projectileRadius * 2 : 16));
     this.spriteManager.loadSprite('spinning_blade', SpriteManager.getSpinningBladeSpriteSVG(this.gameState.spinningBladeWeapon?.bladeRadius ? this.gameState.spinningBladeWeapon.bladeRadius * 2 : 20));
     this.spriteManager.loadSprite('homing_missile', SpriteManager.getHomingMissileSpriteSVG(this.gameState.homingMissileWeapon?.missileRadius ? this.gameState.homingMissileWeapon.missileRadius * 2 : 24));
     this.spriteManager.loadSprite('experience_gem', SpriteManager.getExperienceGemSpriteSVG(20));
@@ -186,16 +187,13 @@ export class GameEngine {
     this.spriteManager.loadSprite('background_tile', SpriteManager.getBackgroundTileSVG(100));
     this.spriteManager.loadSprite('vendor', SpriteManager.getVendorSpriteSVG(this.gameState.vendor.size * 2));
     
-    // Load letter-specific boss sprites
     this.spriteManager.loadSprite('boss_s', SpriteManager.getBossSSpriteSVG(80 * 2));
     this.spriteManager.loadSprite('boss_i', SpriteManager.getBossISpriteSVG(80 * 2));
     this.spriteManager.loadSprite('boss_m', SpriteManager.getBossMSpriteSVG(80 * 2));
     this.spriteManager.loadSprite('boss_g', SpriteManager.getBossGSpriteSVG(80 * 2));
     this.spriteManager.loadSprite('boss_e', SpriteManager.getBossESpriteSVG(80 * 2));
-    // Fallback generic boss sprite (if needed, though specific ones will be used)
     this.spriteManager.loadSprite('boss', SpriteManager.getBossSpriteSVG(80 * 2)); 
 
-    // Sounds (using placeholder base64 audio)
     this.soundManager.loadSound('dash', SoundManager.getDashSound());
     this.soundManager.loadSound('level_up', SoundManager.getLevelUpSound());
     this.soundManager.loadSound('enemy_hit', SoundManager.getEnemyHitSound());
@@ -210,7 +208,7 @@ export class GameEngine {
     this.soundManager.loadSound('magnet_collect', SoundManager.getMagnetCollectSound());
     this.soundManager.loadSound('player_hit', SoundManager.getPlayerHitSound());
     this.soundManager.loadSound('game_over', SoundManager.getGameOverSound());
-    this.soundManager.loadSound('game_win', SoundManager.getLevelUpSound()); // Re-using level up sound for win for now
+    this.soundManager.loadSound('game_win', SoundManager.getLevelUpSound());
     this.soundManager.loadSound('background_music', SoundManager.getBackgroundMusic());
   }
 
@@ -231,7 +229,6 @@ export class GameEngine {
         this.gameState.homingMissileWeapon['missileSprite'] = this.spriteManager.getSprite('homing_missile');
       }
       this.gameState.vendor['sprite'] = this.spriteManager.getSprite('vendor');
-      // No need to set boss sprite here, it's handled when boss is spawned in WaveManager
 
       this.backgroundMusicInstance = this.soundManager.playSound('background_music', true, 0.3);
       this.gameLoop(0);
@@ -249,12 +246,10 @@ export class GameEngine {
     this.onLevelUpCallback();
   };
 
-  // Callback for enemies to report damage taken
   private handleEnemyTakeDamage = (x: number, y: number, damage: number) => {
     this.gameState.damageNumbers.push(new DamageNumber(x, y, damage));
   };
 
-  // New method to add boss attack visuals
   private addBossAttackVisual = (visual: BossAttackVisual) => {
     this.gameState.activeBossAttackVisuals.push(visual);
   };
@@ -282,82 +277,15 @@ export class GameEngine {
   }
 
   openShop() {
-    if (this.gameState.showShop) return;
-    console.log("GameEngine: Opening shop.");
-    this.gameState.showShop = true;
-    this.pause();
-    this.onOpenShopCallback(this.shopItems.filter(item => {
-      if (item.id === 'buy_aura_weapon' && this.gameState.auraWeapon) return false;
-      if (item.id === 'buy_projectile_weapon' && this.gameState.projectileWeapon) return false;
-      if (item.id === 'buy_spinning_blade_weapon' && this.gameState.spinningBladeWeapon) return false;
-      if (item.id === 'buy_homing_missile_weapon' && this.gameState.homingMissileWeapon) return false;
-      if (item.id === 'buy_explosion_ability' && this.gameState.explosionAbility) return false;
-      if (item.id === 'buy_shield_ability' && this.gameState.shieldAbility) return false;
-      if (item.id === 'buy_heal_ability' && this.gameState.healAbility) return false;
-      return true;
-    }), this.gameState.player.gold);
+    this.shopManager.openShop();
   }
 
   closeShop = () => {
-    if (!this.gameState.showShop) return;
-    console.log("GameEngine: Closing shop.");
-    this.gameState.showShop = false;
-    this.onCloseShopCallback();
-    this.resume();
+    this.shopManager.closeShop();
   }
 
   purchaseItem = (itemId: string) => {
-    const item = this.shopItems.find(i => i.id === itemId);
-    if (!item) {
-      showError("Item not found!");
-      return;
-    }
-
-    if (this.gameState.player.spendGold(item.cost)) {
-      showSuccess(`Purchased ${item.name}!`);
-      switch (itemId) {
-        case 'buy_aura_weapon':
-          this.gameState.auraWeapon = new AuraWeapon(10, 100, 0.5);
-          break;
-        case 'buy_projectile_weapon':
-          this.gameState.projectileWeapon = new ProjectileWeapon(15, 300, 1.5, 8, 3, this.spriteManager.getSprite('player_projectile'), this.soundManager);
-          break;
-        case 'buy_spinning_blade_weapon':
-          this.gameState.spinningBladeWeapon = new SpinningBladeWeapon(10, 60, 3, 10, 1, this.spriteManager.getSprite('spinning_blade'), this.soundManager);
-          break;
-        case 'buy_homing_missile_weapon':
-          this.gameState.homingMissileWeapon = new HomingMissileWeapon(20, 250, 2, 12, 4, this.spriteManager.getSprite('homing_missile'), this.soundManager);
-          break;
-        case 'buy_explosion_ability':
-          this.gameState.explosionAbility = new ExplosionAbility(50, 150, 5, this.soundManager);
-          break;
-        case 'buy_shield_ability':
-          this.gameState.shieldAbility = new ShieldAbility(40, 100, 10, 10, this.soundManager);
-          this.gameState.player.setShieldAbility(this.gameState.shieldAbility);
-          break;
-        case 'buy_heal_ability':
-          this.gameState.healAbility = new HealAbility(30, 15, this.soundManager);
-          this.gameState.player.setHealAbility(this.gameState.healAbility);
-          break;
-        case 'buy_health_potion':
-          this.gameState.player.currentHealth = Math.min(this.gameState.player.maxHealth, this.gameState.player.currentHealth + 50);
-          break;
-        default:
-          console.warn(`Unknown item purchased: ${itemId}`);
-      }
-      this.onOpenShopCallback(this.shopItems.filter(i => {
-        if (i.id === 'buy_aura_weapon' && this.gameState.auraWeapon) return false;
-        if (i.id === 'buy_projectile_weapon' && this.gameState.projectileWeapon) return false;
-        if (i.id === 'buy_spinning_blade_weapon' && this.gameState.spinningBladeWeapon) return false;
-        if (i.id === 'buy_homing_missile_weapon' && this.gameState.homingMissileWeapon) return false;
-        if (i.id === 'buy_explosion_ability' && this.gameState.explosionAbility) return false;
-        if (i.id === 'buy_shield_ability' && this.gameState.shieldAbility) return false;
-        if (i.id === 'buy_heal_ability' && this.gameState.healAbility) return false;
-        return true;
-      }), this.gameState.player.gold);
-    } else {
-      showError("Not enough gold!");
-    }
+    this.shopManager.purchaseItem(itemId);
   }
 
   private handleBossDefeat() {
@@ -372,7 +300,7 @@ export class GameEngine {
         console.log("All letters collected! Princess Simge rescued!");
       }
     }
-    this.gameState.currentBoss = undefined; // Clear boss reference
+    this.gameState.currentBoss = undefined;
   }
 
   restartGame = () => {
@@ -380,9 +308,8 @@ export class GameEngine {
     this.soundManager.stopSound(this.backgroundMusicInstance);
     this.backgroundMusicInstance = null;
 
-    // Olay dinleyicilerini temizle ve durumları sıfırla
-    this.gameOverScreen.clearClickListener();
-    this.gameWinScreen.clearClickListener();
+    this.gameState.gameOverScreen.clearClickListener();
+    this.gameState.gameWinScreen.clearClickListener();
     this.wasGameOver = false;
     this.wasGameWon = false;
 
@@ -397,12 +324,20 @@ export class GameEngine {
     ];
     const initialWeapon = startingWeapons[Math.floor(Math.random() * startingWeapons.length)];
 
-    this.gameState = new GameState(player, vendor, this.worldWidth, this.worldHeight, initialWeapon);
+    // GameOverScreen ve GameWinScreen'i GameState'e geçirmeden önce oluştur
+    const gameOverScreen = new GameOverScreen(this.restartGame, this.ctx.canvas);
+    const gameWinScreen = new GameWinScreen(this.restartGame, this.ctx.canvas);
+
+    this.gameState = new GameState(player, vendor, this.worldWidth, this.worldHeight, gameOverScreen, gameWinScreen, initialWeapon);
     
     this.waveManager = new WaveManager(this.gameState, this.spriteManager, this.soundManager, this.addBossAttackVisual);
     this.powerUpManager = new PowerUpManager(this.gameState, this.spriteManager, this.soundManager);
-    this.gameOverScreen = new GameOverScreen(this.restartGame, this.ctx.canvas);
-    this.gameWinScreen = new GameWinScreen(this.restartGame, this.ctx.canvas); // Re-initialize GameWinScreen
+
+    // Yeni yöneticileri yeniden başlat
+    this.gameRenderer = new GameRenderer(this.ctx, this.gameState, this.spriteManager);
+    this.shopManager = new ShopManager(this.gameState, this.spriteManager, this.soundManager, this.onOpenShopCallback, this.onCloseShopCallback);
+    this.upgradeManager = new UpgradeManager(this.gameState);
+    this.collisionManager = new CollisionManager(this.gameState);
 
     this.gameState.player.setSprite(this.spriteManager.getSprite('player'));
     if (this.gameState.projectileWeapon) {
@@ -417,126 +352,56 @@ export class GameEngine {
     this.gameState.vendor['sprite'] = this.spriteManager.getSprite('vendor');
 
     this.gameOverSoundPlayed = false;
-    this.gameWinSoundPlayed = false; // Reset win sound flag
+    this.gameWinSoundPlayed = false;
     this.lastTime = performance.now();
     this.backgroundMusicInstance = this.soundManager.playSound('background_music', true, 0.3);
     this.gameLoop(this.lastTime);
   };
 
   applyUpgrade(upgradeId: string) {
-    switch (upgradeId) {
-      case 'aura_damage':
-        this.gameState.auraWeapon?.increaseDamage(5);
-        break;
-      case 'player_speed':
-        this.gameState.player.increaseSpeed(20);
-        break;
-      case 'player_health':
-        this.gameState.player.increaseMaxHealth(20);
-        break;
-      case 'projectile_damage':
-        this.gameState.projectileWeapon?.increaseDamage(10);
-        break;
-      case 'projectile_fire_rate':
-        this.gameState.projectileWeapon?.decreaseFireRate(0.2);
-        break;
-      case 'homing_missile_damage':
-        this.gameState.homingMissileWeapon?.increaseDamage(10);
-        break;
-      case 'homing_missile_fire_rate':
-        this.gameState.homingMissileWeapon?.decreaseFireRate(0.3);
-        break;
-      case 'homing_missile_count':
-        this.gameState.homingMissileWeapon?.increaseMissilesPerShot(1);
-        break;
-      case 'dash_cooldown':
-        this.gameState.player.reduceDashCooldown(0.3);
-        break;
-      case 'blade_damage':
-        this.gameState.spinningBladeWeapon?.increaseDamage(5);
-        break;
-      case 'add_blade':
-        this.gameState.spinningBladeWeapon?.addBlade();
-        break;
-      case 'explosion_damage':
-        this.gameState.explosionAbility?.increaseDamage(20);
-        break;
-      case 'explosion_cooldown':
-        this.gameState.explosionAbility?.reduceCooldown(1);
-        break;
-      case 'explosion_radius':
-        this.gameState.explosionAbility?.increaseRadius(20);
-        break;
-      case 'shield_health':
-        this.gameState.shieldAbility?.increaseMaxHealth(30);
-        break;
-      case 'shield_regen':
-        this.gameState.shieldAbility?.increaseRegeneration(5);
-        break;
-      case 'shield_cooldown':
-        this.gameState.shieldAbility?.reduceCooldown(1.5);
-        break;
-      case 'heal_amount':
-        this.gameState.healAbility?.increaseHealAmount(10);
-        break;
-      case 'heal_cooldown':
-        this.gameState.healAbility?.reduceCooldown(2);
-        break;
-      case 'player_magnet_radius':
-        this.gameState.player.increaseMagnetRadius(50);
-        break;
-      case 'experience_boost':
-        this.gameState.player.increaseExperienceGain(0.1);
-        break;
-      case 'gold_boost':
-        this.gameState.player.increaseGoldGain(0.1);
-        break;
-      default:
-        console.warn(`Unknown upgrade ID: ${upgradeId}`);
-    }
+    this.upgradeManager.applyUpgrade(upgradeId);
+  }
+
+  public getGameState(): GameState {
+    return this.gameState;
   }
 
   private update(deltaTime: number) {
-    // Oyun duraklatılmışsa, varlıklar yüklenmemişse, oyun bitmişse veya kazanılmışsa güncelleme yapma
     if (this.gameState.isPaused || !this.assetsLoaded || this.gameState.gameOver || this.gameState.gameWon) {
-      // Oyun bittiğinde veya kazanıldığında sesleri çal
       if (this.gameState.gameOver && !this.gameOverSoundPlayed) {
         this.soundManager.playSound('game_over');
         this.soundManager.stopSound(this.backgroundMusicInstance);
         this.gameOverSoundPlayed = true;
-        this.gameOverScreen.activate(); // Oyun bittiğinde dinleyiciyi etkinleştir
+        this.gameState.gameOverScreen.activate();
       } else if (this.gameState.gameWon && !this.gameWinSoundPlayed) {
         this.soundManager.playSound('game_win');
         this.soundManager.stopSound(this.backgroundMusicInstance);
         this.gameWinSoundPlayed = true;
-        this.gameWinScreen.activate(); // Oyun kazanıldığında dinleyiciyi etkinleştir
+        this.gameState.gameWinScreen.activate();
       }
       return;
     }
 
-    // Oyun bitti veya kazanıldı durumundan çıkıldığında dinleyicileri temizle
     if (!this.gameState.gameOver && this.wasGameOver) {
-      this.gameOverScreen.clearClickListener();
+      this.gameState.gameOverScreen.clearClickListener();
     }
     if (!this.gameState.gameWon && this.wasGameWon) {
-      this.gameWinScreen.clearClickListener();
+      this.gameState.gameWinScreen.clearClickListener();
     }
 
-    // Mevcut oyun durumu bayraklarını güncelle
     this.wasGameOver = this.gameState.gameOver;
     this.wasGameWon = this.gameState.gameWon;
 
     deltaTime = Math.min(deltaTime, MAX_DELTA_TIME);
 
-    // Handle boss warning update
     if (this.gameState.isBossWarningActive && this.gameState.bossWarning) {
       const warningActive = this.gameState.bossWarning.update(deltaTime);
       if (!warningActive) {
         this.gameState.isBossWarningActive = false;
-        this.gameState.bossWarning = undefined; // Clear warning instance
-        this.waveManager.spawnBossAfterWarning(); // Now actually spawn the boss
+        this.gameState.bossWarning = undefined;
+        this.waveManager.spawnBossAfterWarning();
       }
-      return; // Don't update other game elements while warning is active
+      return;
     }
 
     console.log("GameEngine: Updating with deltaTime:", deltaTime);
@@ -559,9 +424,8 @@ export class GameEngine {
 
     this.waveManager.update(deltaTime, this.cameraX, this.cameraY, this.ctx.canvas.width, this.ctx.canvas.height);
 
-    // Calculate separation forces for enemies
     const separationForces: { x: number, y: number }[] = new Array(this.gameState.enemies.length).fill(null).map(() => ({ x: 0, y: 0 }));
-    const separationStrength = 100; // How strongly they push each other
+    const separationStrength = 100;
 
     for (let i = 0; i < this.gameState.enemies.length; i++) {
       const enemyA = this.gameState.enemies[i];
@@ -572,8 +436,8 @@ export class GameEngine {
         const dy = enemyA.y - enemyB.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
 
-        const minDistance = enemyA.size / 2 + enemyB.size / 2; // Minimum distance without overlap
-        const separationRadius = minDistance * 1.5; // Enemies start separating when they are 1.5 times their combined radius apart
+        const minDistance = enemyA.size / 2 + enemyB.size / 2;
+        const separationRadius = minDistance * 1.5;
 
         if (distance < separationRadius) {
           const overlap = separationRadius - distance;
@@ -598,7 +462,6 @@ export class GameEngine {
       }
     }
 
-    // Update enemies with separation forces
     this.gameState.enemies.forEach((enemy, index) => {
       if (enemy instanceof ShooterEnemy) {
         enemy.update(deltaTime, this.gameState.player, separationForces[index]);
@@ -611,22 +474,13 @@ export class GameEngine {
     });
     this.gameState.experienceGems.forEach(gem => gem.update(deltaTime));
 
-    // Update and filter damage numbers
     this.gameState.damageNumbers = this.gameState.damageNumbers.filter(dn => dn.update(deltaTime));
-
-    // Update and filter boss attack visuals
     this.gameState.activeBossAttackVisuals = this.gameState.activeBossAttackVisuals.filter(visual => visual.update(deltaTime));
 
-    this.gameState.enemies.forEach(enemy => {
-      if (this.gameState.player.collidesWith(enemy)) {
-        this.gameState.player.takeDamage(5);
-      }
-    });
+    // Çarpışma mantığını CollisionManager'a devret
+    this.collisionManager.updateCollisions(deltaTime);
 
     this.gameState.auraWeapon?.update(deltaTime, this.gameState.player.x, this.gameState.player.y, this.gameState.enemies);
-    this.gameState.projectileWeapon?.update(deltaTime, this.gameState.player.x, this.gameState.player.y, this.gameState.enemies);
-    this.gameState.spinningBladeWeapon?.update(deltaTime, this.gameState.player.x, this.gameState.player.y, this.gameState.enemies);
-    this.gameState.homingMissileWeapon?.update(deltaTime, this.gameState.player.x, this.gameState.player.y, this.gameState.enemies);
     this.gameState.explosionAbility?.update(deltaTime, this.gameState.enemies);
     this.gameState.shieldAbility?.update(deltaTime, this.gameState.player.x, this.gameState.player.y);
     this.gameState.healAbility?.update(deltaTime);
@@ -641,7 +495,6 @@ export class GameEngine {
     });
     this.gameState.enemies = this.gameState.enemies.filter(enemy => enemy.isAlive());
 
-    // If boss was defeated, clear currentBoss reference and handle letter collection
     if (this.gameState.currentBoss && !this.gameState.currentBoss.isAlive()) {
       console.log(`Boss ${this.gameState.currentBoss.getBossName()} defeated!`);
       this.handleBossDefeat();
@@ -654,7 +507,6 @@ export class GameEngine {
       console.log("Game Over!");
     }
 
-    // Update game data via callback for HUD and Minimap
     this.onUpdateGameDataCallback({
       playerHealth: this.gameState.player.currentHealth,
       playerMaxHealth: this.gameState.player.maxHealth,
@@ -677,17 +529,14 @@ export class GameEngine {
       healCooldownCurrent: this.gameState.healAbility ? Math.max(0, this.gameState.healAbility.getCooldownCurrent()) : 0,
       healCooldownMax: this.gameState.healAbility ? this.gameState.healAbility.getCooldownMax() : 0,
 
-      // Boss specific data
       bossActive: !!this.gameState.currentBoss && this.gameState.currentBoss.isAlive(),
       bossHealth: this.gameState.currentBoss?.currentHealth || 0,
       bossMaxHealth: this.gameState.currentBoss?.maxHealth || 0,
       bossName: this.gameState.currentBoss?.getBossName() || '',
 
-      // New properties for Princess Simge rescue
       collectedLetters: this.gameState.collectedLetters,
       gameWon: this.gameState.gameWon,
 
-      // Minimap specific data
       playerX: this.gameState.player.x,
       playerY: this.gameState.player.y,
       worldWidth: this.gameState.worldWidth,
@@ -713,86 +562,7 @@ export class GameEngine {
       return;
     }
 
-    this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
-
-    const backgroundTile = this.spriteManager.getSprite('background_tile');
-    if (backgroundTile) {
-      const tileWidth = backgroundTile.width;
-      const tileHeight = backgroundTile.height;
-      const startX = -this.cameraX % tileWidth;
-      const startY = -this.cameraY % tileHeight;
-
-      for (let x = startX; x < this.ctx.canvas.width; x += tileWidth) {
-        for (let y = startY; y < this.ctx.canvas.height; y += tileHeight) {
-          this.ctx.drawImage(backgroundTile, x, y, tileWidth, tileHeight);
-        }
-      }
-    } else {
-      this.ctx.fillStyle = '#333';
-      this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
-    }
-
-    this.ctx.strokeStyle = 'white';
-    this.ctx.lineWidth = 2;
-    this.ctx.strokeRect(
-      -this.cameraX,
-      -this.cameraY,
-      this.gameState.worldWidth,
-      this.gameState.worldHeight
-    );
-
-    this.gameState.auraWeapon?.draw(this.ctx, this.gameState.player.x, this.gameState.player.y, this.cameraX, this.cameraY);
-    this.gameState.projectileWeapon?.draw(this.ctx, this.cameraX, this.cameraY);
-    this.gameState.spinningBladeWeapon?.draw(this.ctx, this.cameraX, this.cameraY);
-    this.gameState.homingMissileWeapon?.draw(this.ctx, this.cameraX, this.cameraY);
-    this.gameState.explosionAbility?.draw(this.ctx, this.cameraX, this.cameraY);
-
-    this.gameState.experienceGems.forEach(gem => gem.draw(this.ctx, this.cameraX, this.cameraY));
-    this.gameState.magnetPowerUps.forEach(magnet => magnet.draw(this.ctx, this.cameraX, this.cameraY));
-
-    this.gameState.player.draw(this.ctx, this.cameraX, this.cameraY);
-    this.gameState.shieldAbility?.draw(this.ctx, this.cameraX, this.cameraY);
-
-    this.gameState.enemies.forEach(enemy => enemy.draw(this.ctx, this.cameraX, this.cameraY));
-
-    this.gameState.vendor.draw(this.ctx, this.cameraX, this.cameraY);
-
-    // Draw damage numbers
-    this.gameState.damageNumbers.forEach(dn => dn.draw(this.ctx, this.cameraX, this.cameraY));
-
-    // Draw boss attack visuals
-    this.gameState.activeBossAttackVisuals.forEach(visual => visual.draw(this.ctx, this.cameraX, this.cameraY));
-
-    if (this.gameState.activeMagnetRadius > 0) {
-      this.ctx.strokeStyle = 'rgba(173, 216, 230, 0.5)';
-      this.ctx.lineWidth = 2;
-      this.ctx.beginPath();
-      this.ctx.arc(this.gameState.player.x - this.cameraX, this.gameState.player.y - this.cameraY, this.gameState.activeMagnetRadius, 0, Math.PI * 2);
-      this.ctx.stroke();
-    }
-
-    if (this.gameState.vendor.isPlayerInRange(this.gameState.player) && !this.gameState.showShop) {
-      this.ctx.fillStyle = 'white';
-      this.ctx.font = '24px Arial';
-      this.ctx.textAlign = 'center';
-      this.ctx.shadowColor = 'black';
-      this.ctx.shadowBlur = 5;
-      this.ctx.fillText('Press F to interact with Vendor', this.ctx.canvas.width / 2, this.ctx.canvas.height - 50);
-      this.ctx.shadowColor = 'transparent';
-    }
-
-    if (this.gameState.gameOver) {
-      this.gameOverScreen.draw(this.ctx, this.ctx.canvas.width, this.ctx.canvas.height);
-    }
-
-    if (this.gameState.gameWon) {
-      this.gameWinScreen.draw(this.ctx, this.ctx.canvas.width, this.ctx.canvas.height);
-    }
-
-    // Draw boss warning if active
-    if (this.gameState.isBossWarningActive && this.gameState.bossWarning) {
-      this.gameState.bossWarning.draw(this.ctx);
-    }
+    this.gameRenderer.draw(this.cameraX, this.cameraY);
   }
 
   private gameLoop = (currentTime: number) => {
@@ -818,14 +588,10 @@ export class GameEngine {
       this.animationFrameId = null;
     }
     this.inputHandler.destroy();
-    this.gameOverScreen.clearClickListener(); // Durdurulduğunda dinleyicileri temizle
-    this.gameWinScreen.clearClickListener();
-    this.wasGameOver = false; // Durumları sıfırla
+    this.gameState.gameOverScreen.clearClickListener();
+    this.gameState.gameWinScreen.clearClickListener();
+    this.wasGameOver = false;
     this.wasGameWon = false;
     this.soundManager.stopSound(this.backgroundMusicInstance);
-  }
-
-  public getGameState(): GameState {
-    return this.gameState;
   }
 }

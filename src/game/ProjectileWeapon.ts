@@ -75,19 +75,8 @@ export class ProjectileWeapon {
       }
     }
 
-    this.projectiles = this.projectiles.filter(projectile => {
-      const isAlive = projectile.update(deltaTime);
-      if (!isAlive) return false;
-
-      for (let i = 0; i < enemies.length; i++) {
-        const enemy = enemies[i];
-        if (enemy.isAlive() && projectile.collidesWith(enemy)) {
-          enemy.takeDamage(projectile.damage);
-          return false;
-        }
-      }
-      return true;
-    });
+    // Projectile güncelleme ve filtreleme CollisionManager'a taşındı
+    // this.projectiles = this.projectiles.filter(projectile => { ... });
   }
 
   draw(ctx: CanvasRenderingContext2D, cameraX: number, cameraY: number) {
