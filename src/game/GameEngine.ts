@@ -327,6 +327,7 @@ export class GameEngine {
           break;
         case 'buy_explosion_ability':
           this.gameState.explosionAbility = new ExplosionAbility(50, 150, 5, this.soundManager);
+          this.gameState.player.setExplosionAbility(this.gameState.explosionAbility); // Set ability on player
           break;
         case 'buy_shield_ability':
           this.gameState.shieldAbility = new ShieldAbility(40, 100, 10, 10, this.soundManager);
@@ -519,10 +520,7 @@ export class GameEngine {
     console.log("GameEngine: Updating with deltaTime:", deltaTime);
 
     this.gameState.player.update(this.inputHandler, deltaTime, this.gameState.worldWidth, this.gameState.worldHeight);
-
-    if (this.inputHandler.isPressed('e') && this.gameState.explosionAbility) {
-      this.gameState.explosionAbility.triggerExplosion(this.gameState.player.x, this.gameState.player.y);
-    }
+    this.gameState.player.handleAbilityInput(this.inputHandler); // Call new method
 
     if (this.inputHandler.isPressed('f') && this.gameState.vendor.isPlayerInRange(this.gameState.player) && !this.gameState.showShop) {
       this.openShop();

@@ -2,6 +2,7 @@ import { InputHandler } from './InputHandler';
 import { clamp } from './utils';
 import { ShieldAbility } from './ShieldAbility';
 import { HealAbility } from './HealAbility';
+import { ExplosionAbility } from './ExplosionAbility'; // Import ExplosionAbility
 import { SoundManager } from './SoundManager';
 
 export class Player {
@@ -19,6 +20,7 @@ export class Player {
   private onLevelUpCallback: () => void;
   private shieldAbility: ShieldAbility | null = null;
   private healAbility: HealAbility | null = null;
+  private explosionAbility: ExplosionAbility | null = null; // Add explosion ability
   private sprite: HTMLImageElement | undefined;
   private soundManager: SoundManager;
   private hitTimer: number = 0; // For hit animation
@@ -70,6 +72,10 @@ export class Player {
     this.healAbility = healAbility;
   }
 
+  setExplosionAbility(explosionAbility: ExplosionAbility) { // New setter for explosion ability
+    this.explosionAbility = explosionAbility;
+  }
+
   update(input: InputHandler, deltaTime: number, worldWidth: number, worldHeight: number) {
     if (!this.isAlive()) return;
 
@@ -90,20 +96,6 @@ export class Player {
       this.currentDashCooldown = this.dashCooldown;
       this.soundManager.playSound('dash');
       console.log("Dash activated!");
-    }
-
-    // Check for shield activation input (e.g., 'q' key)
-    if (input.isPressed('q') && this.shieldAbility) {
-      if (this.shieldAbility.shield.isActive) {
-        this.shieldAbility.deactivateShield();
-      } else {
-        this.shieldAbility.activateShield();
-      }
-    }
-
-    // Check for heal ability input (e.g., 'r' key)
-    if (input.isPressed('r') && this.healAbility) {
-      this.healAbility.triggerHeal(this); // Pass 'this' (player) to heal ability
     }
 
     let moveAmount = this.speed * deltaTime;
@@ -143,6 +135,27 @@ export class Player {
 
     this.x = clamp(this.x, this.size / 2, worldWidth - this.size / 2);
     this.y = clamp(this.y, this.size / 2, worldHeight - this.size / 2);
+  }
+
+  handleAbilityInput(input: InputHandler) {
+    // Check for shield activation input (e.g., 'q' key)
+    if (input.isPressed('q') && this.shieldAbility) {
+      if (this.shieldAbility.shield.isActive) {
+        this.shieldAbility.deactivateShield();
+      } else {
+        this.shieldAbility.activateShield();
+      }
+    }
+
+    // Check for heal ability input (e.g., 'r' key)
+    if (input.isPressed('r') && this.healAbility) {
+      this.healAbility.triggerHeal(this); // Pass 'this' (player) to heal ability
+    }
+
+    // Check for explosion ability input (e.g., 'e' key)
+    if (input.isPressed('e') && this.explosionAbility) {
+      this.explosionAbility.triggerExplosion(this.x, this.y);
+    }
   }
 
   draw(ctx: CanvasRenderingContext2D, cameraX: number, cameraY: number) {
