@@ -130,6 +130,7 @@ export class EntityManager {
     // Update player's projectiles (if any)
     this.gameState.projectileWeapon?.update(deltaTime, player.x, player.y, this.gameState.enemies);
     this.gameState.homingMissileWeapon?.update(deltaTime, player.x, player.y, this.gameState.enemies);
+    this.gameState.laserBeamWeapon?.update(deltaTime, player.x, player.y, this.gameState.enemies); // NEW
 
     // Update other entities
     this.gameState.auraWeapon?.update(deltaTime, player.x, player.y, this.gameState.enemies);
@@ -137,6 +138,7 @@ export class EntityManager {
     this.gameState.explosionAbility?.update(deltaTime, this.gameState.enemies);
     this.gameState.shieldAbility?.update(deltaTime, player.x, player.y);
     this.gameState.healAbility?.update(deltaTime);
+    this.gameState.timeSlowAbility?.update(deltaTime, this.gameState.enemies); // NEW
 
     this.gameState.experienceGems.forEach(gem => gem.update(deltaTime));
     this.gameState.magnetPowerUps.forEach(magnet => magnet.update(deltaTime));
@@ -212,6 +214,7 @@ export class EntityManager {
     this.gameState.projectileWeapon?.draw(ctx, cameraX, cameraY);
     this.gameState.spinningBladeWeapon?.draw(ctx, cameraX, cameraY);
     this.gameState.homingMissileWeapon?.draw(ctx, cameraX, cameraY);
+    this.gameState.laserBeamWeapon?.draw(ctx, this.gameState.player.x, this.gameState.player.y, cameraX, cameraY); // NEW
     this.gameState.explosionAbility?.draw(ctx, cameraX, cameraY);
 
     this.gameState.experienceGems.forEach(gem => gem.draw(ctx, cameraX, cameraY));

@@ -597,7 +597,12 @@ export class GameEngine {
     console.log("GameEngine: Updating with deltaTime:", deltaTime);
 
     this.gameState.player.update(this.inputHandler, deltaTime, this.gameState.worldWidth, this.gameState.worldHeight);
-    this.gameState.player.handleAbilityInput(this.inputHandler); // Call new method
+    this.gameState.player.handleAbilityInput(this.inputHandler, this.gameState.enemies); // Pass enemies to player's ability handler
+
+    // Handle Time Slow ability activation from player input
+    if (this.inputHandler.isPressed('t') && this.gameState.timeSlowAbility) {
+      this.gameState.timeSlowAbility.triggerSlow(this.gameState.enemies);
+    }
 
     if (this.inputHandler.isPressed('f') && this.gameState.vendor.isPlayerInRange(this.gameState.player) && !this.gameState.showShop) {
       this.openShop();

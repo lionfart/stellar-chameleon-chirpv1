@@ -5,6 +5,7 @@ import { HealAbility } from './HealAbility';
 import { ExplosionAbility } from './ExplosionAbility'; // Import ExplosionAbility
 import { SoundManager } from './SoundManager';
 import { TimeSlowAbility } from './TimeSlowAbility'; // NEW
+import { Enemy } from './Enemy'; // Import Enemy for the handleAbilityInput method
 
 export class Player {
   x: number;
@@ -143,7 +144,7 @@ export class Player {
     this.y = clamp(this.y, this.size / 2, worldHeight - this.size / 2);
   }
 
-  handleAbilityInput(input: InputHandler) {
+  handleAbilityInput(input: InputHandler, enemies: Enemy[]) { // Added enemies parameter
     // Check for shield activation input (e.g., 'q' key)
     if (input.isPressed('q') && this.shieldAbility) {
       if (this.shieldAbility.shield.isActive) {
@@ -165,13 +166,7 @@ export class Player {
 
     // Check for time slow ability input (e.g., 't' key)
     if (input.isPressed('t') && this.timeSlowAbility) {
-      // Pass enemies from GameState to TimeSlowAbility
-      // This requires GameEngine to pass the current enemies array to Player's handleAbilityInput
-      // For now, we'll assume GameEngine will handle this or TimeSlowAbility will get enemies from GameState directly.
-      // This is a simplification for the current scope.
-      // A more robust solution would involve passing the EntityManager or GameState to Player.
-      console.warn("Time Slow ability triggered, but needs access to enemies array for full functionality.");
-      // this.timeSlowAbility.triggerSlow(this.gameState.enemies); // This would be the ideal call
+      this.timeSlowAbility.triggerSlow(enemies); // Now correctly passes the enemies array
     }
   }
 
