@@ -26,8 +26,9 @@ const getLevelUpOptions = (gameState: any) => {
     { id: 'homing_missile_count', name: 'Add Homing Missile', description: 'Fire an additional homing missile per volley.' },
     { id: 'laser_beam_damage', name: 'Increase Laser Damage', description: 'Your laser beam deals more damage.' },
     { id: 'laser_beam_range', name: 'Increase Laser Range', description: 'Your laser beam can target enemies further away.' },
-    { id: 'laser_beam_cooldown', name: 'Reduce Laser Cooldown', description: 'Use your laser beam more often.' },
-    { id: 'laser_beam_duration', name: 'Increase Laser Duration', description: 'Your laser beam stays active longer.' },
+    // REMOVED: Laser Beam Cooldown/Duration upgrades as it's now an automatic weapon
+    // { id: 'laser_beam_cooldown', name: 'Reduce Laser Cooldown', description: 'Use your laser beam more often.' },
+    // { id: 'laser_beam_duration', name: 'Increase Laser Duration', description: 'Your laser beam stays active longer.' },
     { id: 'dash_cooldown', name: 'Reduce Dash Cooldown', description: 'Dash more often to evade enemies.' },
     { id: 'blade_damage', name: 'Increase Blade Damage', description: 'Your spinning blades deal more damage.' },
     { id: 'add_blade', name: 'Add Spinning Blade', description: 'Add another blade to orbit you, increasing coverage.' },
@@ -94,8 +95,9 @@ const GameCanvas: React.FC = () => {
     healCooldownMax: 0,
     timeSlowCooldownCurrent: 0,
     timeSlowCooldownMax: 0,
-    laserBeamCooldownCurrent: 0, // NEW
-    laserBeamCooldownMax: 0, // NEW
+    // REMOVED: Laser Beam Cooldown from initial state as it's no longer a player ability
+    // laserBeamCooldownCurrent: 0,
+    // laserBeamCooldownMax: 0,
     bossActive: false,
     bossHealth: 0,
     bossMaxHealth: 0,
@@ -171,8 +173,9 @@ const GameCanvas: React.FC = () => {
       setTimeout(() => showSuccess("Press E to trigger an explosion around you."), 6500);
       setTimeout(() => showSuccess("Press R to use your heal ability."), 8500);
       setTimeout(() => showSuccess("Press T to slow down time for enemies."), 10500);
-      setTimeout(() => showSuccess("Press X to fire your Laser Beam!"), 12500); // NEW: Laser Beam notification
-      setTimeout(() => showSuccess("Find the Vendor (gold '$' icon) and press F to open the shop!"), 14500);
+      // REMOVED: Laser Beam notification as it's now an automatic weapon
+      // setTimeout(() => showSuccess("Press X to fire your Laser Beam!"), 12500);
+      setTimeout(() => showSuccess("Find the Vendor (gold '$' icon) and press F to open the shop!"), 12500); // Adjusted timing
       notificationsShownRef.current = true;
     }
 

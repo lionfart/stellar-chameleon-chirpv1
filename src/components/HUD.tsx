@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/Progress';
 import { Badge } from '@/components/ui/badge';
-import { Heart, Zap, Shield, Gem, Clock, Swords, Bomb, Footprints, PlusCircle, Crown, Hourglass, Sparkles } from 'lucide-react'; // Sparkles icon for Laser Beam
+import { Heart, Zap, Shield, Gem, Clock, Swords, Bomb, Footprints, PlusCircle, Crown, Hourglass } from 'lucide-react'; // Sparkles icon for Laser Beam removed
 import CooldownDisplay from './CooldownDisplay';
 
 export interface HUDProps {
@@ -28,8 +28,9 @@ export interface HUDProps {
   healCooldownMax: number;
   timeSlowCooldownCurrent: number;
   timeSlowCooldownMax: number;
-  laserBeamCooldownCurrent: number; // NEW
-  laserBeamCooldownMax: number; // NEW
+  // REMOVED: Laser Beam Cooldown from HUDProps as it's no longer a player ability
+  // laserBeamCooldownCurrent: number;
+  // laserBeamCooldownMax: number;
 
   // Boss specific data
   bossActive: boolean;
@@ -65,8 +66,9 @@ const HUD: React.FC<HUDProps> = ({
   healCooldownMax,
   timeSlowCooldownCurrent,
   timeSlowCooldownMax,
-  laserBeamCooldownCurrent, // NEW
-  laserBeamCooldownMax, // NEW
+  // REMOVED: Laser Beam Cooldown from HUDProps as it's no longer a player ability
+  // laserBeamCooldownCurrent,
+  // laserBeamCooldownMax,
   // Boss specific data
   bossActive,
   bossHealth,
@@ -179,7 +181,8 @@ const HUD: React.FC<HUDProps> = ({
               />
             )}
 
-            {laserBeamCooldownMax > 0 && ( // NEW: Laser Beam Cooldown Display
+            {/* REMOVED: Laser Beam Cooldown Display as it's no longer a player ability */}
+            {/* {laserBeamCooldownMax > 0 && (
               <CooldownDisplay
                 Icon={Sparkles}
                 name="Laser Beam"
@@ -187,7 +190,7 @@ const HUD: React.FC<HUDProps> = ({
                 maxCooldown={laserBeamCooldownMax}
                 colorClass="text-cyan-400 drop-shadow-sm"
               />
-            )}
+            )} */}
           </CardContent>
         </Card>
       </div>

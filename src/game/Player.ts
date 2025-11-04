@@ -25,7 +25,7 @@ export class Player {
   private healAbility: HealAbility | null = null;
   private explosionAbility: ExplosionAbility | null = null;
   private timeSlowAbility: TimeSlowAbility | null = null;
-  private laserBeamWeapon: LaserBeamWeapon | null = null; // NEW: Laser Beam Weapon reference
+  // private laserBeamWeapon: LaserBeamWeapon | null = null; // REMOVED: Laser Beam Weapon reference is no longer a player ability
   private sprite: HTMLImageElement | undefined;
   private soundManager: SoundManager;
   private hitTimer: number = 0;
@@ -85,9 +85,10 @@ export class Player {
     this.timeSlowAbility = timeSlowAbility;
   }
 
-  setLaserBeamWeapon(laserBeamWeapon: LaserBeamWeapon) { // NEW: Setter for Laser Beam Weapon
-    this.laserBeamWeapon = laserBeamWeapon;
-  }
+  // REMOVED: Setter for Laser Beam Weapon as it's no longer a player ability
+  // setLaserBeamWeapon(laserBeamWeapon: LaserBeamWeapon) {
+  //   this.laserBeamWeapon = laserBeamWeapon;
+  // }
 
   update(input: InputHandler, deltaTime: number, worldWidth: number, worldHeight: number) {
     if (!this.isAlive()) return;
@@ -165,10 +166,10 @@ export class Player {
       this.timeSlowAbility.triggerSlow(enemies);
     }
 
-    // NEW: Check for Laser Beam Weapon activation input (e.g., 'x' key)
-    if (input.isPressed('x') && this.laserBeamWeapon) {
-      this.laserBeamWeapon.triggerBeam(this.x, this.y, enemies);
-    }
+    // REMOVED: Laser Beam Weapon activation input as it's now automatic
+    // if (input.isPressed('x') && this.laserBeamWeapon) {
+    //   this.laserBeamWeapon.triggerBeam(this.x, this.y, enemies);
+    // }
   }
 
   draw(ctx: CanvasRenderingContext2D, cameraX: number, cameraY: number) {
@@ -342,12 +343,12 @@ export class Player {
     return this.timeSlowAbility?.getCooldownMax() || 0;
   }
 
-  // NEW: Getters for Laser Beam Weapon Cooldown
-  getLaserBeamCooldownCurrent(): number {
-    return this.laserBeamWeapon?.getCooldownCurrent() || 0;
-  }
+  // REMOVED: Getters for Laser Beam Weapon Cooldown as it's no longer a player ability
+  // getLaserBeamCooldownCurrent(): number {
+  //   return this.laserBeamWeapon?.getCooldownCurrent() || 0;
+  // }
 
-  getLaserBeamCooldownMax(): number {
-    return this.laserBeamWeapon?.getCooldownMax() || 0;
-  }
+  // getLaserBeamCooldownMax(): number {
+  //   return this.laserBeamWeapon?.getCooldownMax() || 0;
+  // }
 }

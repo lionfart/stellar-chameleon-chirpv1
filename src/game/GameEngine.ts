@@ -62,8 +62,9 @@ export interface GameDataProps {
   healCooldownMax: number;
   timeSlowCooldownCurrent: number;
   timeSlowCooldownMax: number;
-  laserBeamCooldownCurrent: number; // NEW
-  laserBeamCooldownMax: number; // NEW
+  // REMOVED: Laser Beam Cooldown from HUDProps as it's no longer a player ability
+  // laserBeamCooldownCurrent: number;
+  // laserBeamCooldownMax: number;
 
   bossActive: boolean;
   bossHealth: number;
@@ -124,7 +125,7 @@ export class GameEngine {
     { id: 'buy_projectile_weapon', name: 'Projectile Weapon', description: 'Fires projectiles at the closest enemy.', cost: 100, type: 'weapon' },
     { id: 'buy_spinning_blade_weapon', name: 'Spinning Blade Weapon', description: 'Blades orbit you, damaging enemies on contact.', cost: 100, type: 'weapon' },
     { id: 'buy_homing_missile_weapon', name: 'Homing Missile Weapon', description: 'Fires missiles that track the closest enemy.', cost: 120, type: 'weapon' },
-    { id: 'buy_laser_beam_weapon', name: 'Laser Beam Weapon', description: 'Fires a continuous laser beam at the closest enemy.', cost: 150, type: 'weapon' },
+    { id: 'buy_laser_beam_weapon', name: 'Laser Beam Weapon', description: 'Fires a continuous laser beam at the closest enemy.', cost: 150, type: 'weapon' }, // Changed type to 'weapon'
     { id: 'buy_explosion_ability', name: 'Explosion Ability', description: 'Trigger an explosion around you (E key).', cost: 150, type: 'ability' },
     { id: 'buy_shield_ability', name: 'Shield Ability', description: 'Activate a protective shield (Q key).', cost: 150, type: 'ability' },
     { id: 'buy_heal_ability', name: 'Heal Ability', description: 'Restore player health (R key).', cost: 120, type: 'ability' },
@@ -153,7 +154,7 @@ export class GameEngine {
       new ProjectileWeapon(15, 300, 1.5, 8, 3, undefined, this.soundManager),
       new SpinningBladeWeapon(10, 60, 3, 10, 1, undefined, this.soundManager),
       new HomingMissileWeapon(20, 250, 2, 12, 4, undefined, this.soundManager),
-      new LaserBeamWeapon(30, 300, 5, 0.1, 8, 3, undefined, this.soundManager),
+      new LaserBeamWeapon(30, 300, 5, 0.1, undefined, this.soundManager), // Removed cooldown/duration from constructor
     ];
     const initialWeapon = startingWeapons[Math.floor(Math.random() * startingWeapons.length)];
 
@@ -167,7 +168,8 @@ export class GameEngine {
       this.gameState.homingMissileWeapon = initialWeapon;
     } else if (initialWeapon instanceof LaserBeamWeapon) {
       this.gameState.laserBeamWeapon = initialWeapon;
-      this.gameState.player.setLaserBeamWeapon(initialWeapon); // NEW: Set laser beam weapon on player
+      // REMOVED: Player no longer sets LaserBeamWeapon as it's automatic
+      // this.gameState.player.setLaserBeamWeapon(initialWeapon);
     }
     
     this.entityManager = new EntityManager(this.gameState, this.spriteManager, this.soundManager);
@@ -313,7 +315,7 @@ export class GameEngine {
       if (item.id === 'buy_projectile_weapon' && this.gameState.projectileWeapon) return false;
       if (item.id === 'buy_spinning_blade_weapon' && this.gameState.spinningBladeWeapon) return false;
       if (item.id === 'buy_homing_missile_weapon' && this.gameState.homingMissileWeapon) return false;
-      if (item.id === 'buy_laser_beam_weapon' && this.gameState.laserBeamWeapon) return false;
+      if (item.id === 'buy_laser_beam_weapon' && this.gameState.laserBeamWeapon) return false; // Check if already owned
       if (item.id === 'buy_explosion_ability' && this.gameState.explosionAbility) return false;
       if (item.id === 'buy_shield_ability' && this.gameState.shieldAbility) return false;
       if (item.id === 'buy_heal_ability' && this.gameState.healAbility) return false;
@@ -353,8 +355,9 @@ export class GameEngine {
           this.gameState.homingMissileWeapon = new HomingMissileWeapon(20, 250, 2, 12, 4, this.spriteManager.getSprite('homing_missile'), this.soundManager);
           break;
         case 'buy_laser_beam_weapon':
-          this.gameState.laserBeamWeapon = new LaserBeamWeapon(30, 300, 5, 0.1, 8, 3, this.spriteManager.getSprite('laser_beam'), this.soundManager);
-          this.gameState.player.setLaserBeamWeapon(this.gameState.laserBeamWeapon); // NEW: Set laser beam weapon on player
+          this.gameState.laserBeamWeapon = new LaserBeamWeapon(30, 300, 5, 0.1, this.spriteManager.getSprite('laser_beam'), this.soundManager); // Updated constructor call
+          // REMOVED: Player no longer sets LaserBeamWeapon as it's automatic
+          // this.gameState.player.setLaserBeamWeapon(this.gameState.laserBeamWeapon);
           break;
         case 'buy_explosion_ability':
           this.gameState.explosionAbility = new ExplosionAbility(50, 150, 5, this.soundManager);
@@ -383,7 +386,7 @@ export class GameEngine {
         if (i.id === 'buy_projectile_weapon' && this.gameState.projectileWeapon) return false;
         if (i.id === 'buy_spinning_blade_weapon' && this.gameState.spinningBladeWeapon) return false;
         if (i.id === 'buy_homing_missile_weapon' && this.gameState.homingMissileWeapon) return false;
-        if (i.id === 'buy_laser_beam_weapon' && this.gameState.laserBeamWeapon) return false;
+        if (i.id === 'buy_laser_beam_weapon' && this.gameState.laserBeamWeapon) return false; // Check if already owned
         if (i.id === 'buy_explosion_ability' && this.gameState.explosionAbility) return false;
         if (i.id === 'buy_shield_ability' && this.gameState.shieldAbility) return false;
         if (i.id === 'buy_heal_ability' && this.gameState.healAbility) return false;
@@ -415,7 +418,7 @@ export class GameEngine {
       new ProjectileWeapon(15, 300, 1.5, 8, 3, undefined, this.soundManager),
       new SpinningBladeWeapon(10, 60, 3, 10, 1, undefined, this.soundManager),
       new HomingMissileWeapon(20, 250, 2, 12, 4, undefined, this.soundManager),
-      new LaserBeamWeapon(30, 300, 5, 0.1, 8, 3, undefined, this.soundManager),
+      new LaserBeamWeapon(30, 300, 5, 0.1, undefined, this.soundManager), // Updated constructor call
     ];
     const initialWeapon = startingWeapons[Math.floor(Math.random() * startingWeapons.length)];
 
@@ -429,7 +432,8 @@ export class GameEngine {
       this.gameState.homingMissileWeapon = initialWeapon;
     } else if (initialWeapon instanceof LaserBeamWeapon) {
       this.gameState.laserBeamWeapon = initialWeapon;
-      this.gameState.player.setLaserBeamWeapon(initialWeapon); // NEW: Set laser beam weapon on player
+      // REMOVED: Player no longer sets LaserBeamWeapon as it's automatic
+      // this.gameState.player.setLaserBeamWeapon(initialWeapon);
     }
     
     this.entityManager = new EntityManager(this.gameState, this.spriteManager, this.soundManager);
@@ -492,12 +496,13 @@ export class GameEngine {
       case 'laser_beam_range':
         this.gameState.laserBeamWeapon?.increaseRange(50);
         break;
-      case 'laser_beam_cooldown':
-        this.gameState.laserBeamWeapon?.reduceCooldown(1);
-        break;
-      case 'laser_beam_duration':
-        this.gameState.laserBeamWeapon?.increaseDuration(1);
-        break;
+      // REMOVED: Cooldown/Duration upgrades for Laser Beam as it's now automatic
+      // case 'laser_beam_cooldown':
+      //   this.gameState.laserBeamWeapon?.reduceCooldown(1);
+      //   break;
+      // case 'laser_beam_duration':
+      //   this.gameState.laserBeamWeapon?.increaseDuration(1);
+      //   break;
       case 'dash_cooldown':
         this.gameState.player.reduceDashCooldown(0.3);
         break;
@@ -639,8 +644,9 @@ export class GameEngine {
       healCooldownMax: this.gameState.healAbility ? this.gameState.healAbility.getCooldownMax() : 0,
       timeSlowCooldownCurrent: this.gameState.timeSlowAbility ? Math.max(0, this.gameState.timeSlowAbility.getCooldownCurrent()) : 0,
       timeSlowCooldownMax: this.gameState.timeSlowAbility ? this.gameState.timeSlowAbility.getCooldownMax() : 0,
-      laserBeamCooldownCurrent: this.gameState.laserBeamWeapon ? Math.max(0, this.gameState.laserBeamWeapon.getCooldownCurrent()) : 0, // NEW
-      laserBeamCooldownMax: this.gameState.laserBeamWeapon ? this.gameState.laserBeamWeapon.getCooldownMax() : 0, // NEW
+      // REMOVED: Laser Beam Cooldown from HUDProps as it's no longer a player ability
+      // laserBeamCooldownCurrent: this.gameState.laserBeamWeapon ? Math.max(0, this.gameState.laserBeamWeapon.getCooldownCurrent()) : 0,
+      // laserBeamCooldownMax: this.gameState.laserBeamWeapon ? this.gameState.laserBeamWeapon.getCooldownMax() : 0,
 
       bossActive: !!this.gameState.currentBoss && this.gameState.currentBoss.isAlive(),
       bossHealth: this.gameState.currentBoss?.currentHealth || 0,
