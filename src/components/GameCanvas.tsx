@@ -24,45 +24,45 @@ interface GameCanvasProps {
 
 const getLevelUpOptions = (gameState: any, t: (key: string) => string) => { // NEW: Pass t function
   const options = [
-    { id: 'aura_damage', name: '', description: '' }, // Name and description will be translated in LevelUpSelection
-    { id: 'player_speed', name: '', description: '' },
-    { id: 'player_health', name: '', description: '' },
-    { id: 'projectile_damage', name: '', description: '' },
-    { id: 'projectile_fire_rate', name: '', description: '' },
-    { id: 'homing_missile_damage', name: '', description: '' },
-    { id: 'homing_missile_fire_rate', name: '', description: '' },
-    { id: 'homing_missile_count', name: '', description: '' },
-    { id: 'laser_beam_damage', name: '', description: '' },
-    { id: 'laser_beam_range', name: '', description: '' },
-    { id: 'dash_cooldown', name: '', description: '' },
-    { id: 'blade_damage', name: '', description: '' },
-    { id: 'add_blade', name: '', description: '' },
-    { id: 'explosion_damage', name: '', description: '' },
-    { id: 'explosion_cooldown', name: '', description: '' },
-    { id: 'explosion_radius', name: '', description: '' },
-    { id: 'shield_health', name: '', description: '' },
-    { id: 'shield_regen', name: '', description: '' },
-    { id: 'shield_cooldown', name: '', description: '' },
-    { id: 'heal_amount', name: '', description: '' },
-    { id: 'heal_cooldown', name: '', description: '' },
-    { id: 'time_slow_factor', name: '', description: '' },
-    { id: 'time_slow_duration', name: '', description: '' },
-    { id: 'time_slow_cooldown', name: '', description: '' },
-    { id: 'player_magnet_radius', name: '', description: '' },
-    { id: 'experience_boost', name: '', description: '' },
-    { id: 'gold_boost', name: '', description: '' },
+    { id: 'auraDamage', name: '', description: '' }, // ID güncellendi
+    { id: 'playerSpeed', name: '', description: '' }, // ID güncellendi
+    { id: 'playerHealth', name: '', description: '' }, // ID güncellendi
+    { id: 'projectileDamage', name: '', description: '' }, // ID güncellendi
+    { id: 'projectileFireRate', name: '', description: '' }, // ID güncellendi
+    { id: 'homingMissileDamage', name: '', description: '' }, // ID güncellendi
+    { id: 'homingMissileFireRate', name: '', description: '' }, // ID güncellendi
+    { id: 'homingMissileCount', name: '', description: '' }, // ID güncellendi
+    { id: 'laserBeamDamage', name: '', description: '' }, // ID güncellendi
+    { id: 'laserBeamRange', name: '', description: '' }, // ID güncellendi
+    { id: 'dashCooldown', name: '', description: '' }, // ID güncellendi
+    { id: 'bladeDamage', name: '', description: '' }, // ID güncellendi
+    { id: 'addBlade', name: '', description: '' }, // ID güncellendi
+    { id: 'explosionDamage', name: '', description: '' }, // ID güncellendi
+    { id: 'explosionCooldown', name: '', description: '' }, // ID güncellendi
+    { id: 'explosionRadius', name: '', description: '' }, // ID güncellendi
+    { id: 'shieldHealth', name: '', description: '' }, // ID güncellendi
+    { id: 'shieldRegen', name: '', description: '' }, // ID güncellendi
+    { id: 'shieldCooldown', name: '', description: '' }, // ID güncellendi
+    { id: 'healAmount', name: '', description: '' }, // ID güncellendi
+    { id: 'healCooldown', name: '', description: '' }, // ID güncellendi
+    { id: 'timeSlowFactor', name: '', description: '' }, // ID güncellendi
+    { id: 'timeSlowDuration', name: '', description: '' }, // ID güncellendi
+    { id: 'timeSlowCooldown', name: '', description: '' }, // ID güncellendi
+    { id: 'playerMagnetRadius', name: '', description: '' }, // ID güncellendi
+    { id: 'experienceBoost', name: '', description: '' }, // ID güncellendi
+    { id: 'goldBoost', name: '', description: '' }, // ID güncellendi
   ];
 
   return options.filter(option => {
-    if (option.id.startsWith('aura_') && !gameState.auraWeapon) return false;
-    if (option.id.startsWith('projectile_') && !gameState.projectileWeapon) return false;
-    if (option.id.startsWith('blade_') && !gameState.spinningBladeWeapon) return false;
-    if (option.id.startsWith('homing_missile_') && !gameState.homingMissileWeapon) return false;
-    if (option.id.startsWith('laser_beam_') && !gameState.laserBeamWeapon) return false;
-    if (option.id.startsWith('explosion_') && !gameState.explosionAbility) return false;
-    if (option.id.startsWith('shield_') && !gameState.shieldAbility) return false;
-    if (option.id.startsWith('heal_') && !gameState.healAbility) return false;
-    if (option.id.startsWith('time_slow_') && !gameState.timeSlowAbility) return false;
+    if (option.id.startsWith('aura') && !gameState.auraWeapon) return false; // Kontrol güncellendi
+    if (option.id.startsWith('projectile') && !gameState.projectileWeapon) return false; // Kontrol güncellendi
+    if (option.id.startsWith('blade') && !gameState.spinningBladeWeapon) return false; // Kontrol güncellendi
+    if (option.id.startsWith('homingMissile') && !gameState.homingMissileWeapon) return false; // Kontrol güncellendi
+    if (option.id.startsWith('laserBeam') && !gameState.laserBeamWeapon) return false; // Kontrol güncellendi
+    if (option.id.startsWith('explosion') && !gameState.explosionAbility) return false; // Kontrol güncellendi
+    if (option.id.startsWith('shield') && !gameState.shieldAbility) return false; // Kontrol güncellendi
+    if (option.id.startsWith('heal') && !gameState.healAbility) return false; // Kontrol güncellendi
+    if (option.id.startsWith('timeSlow') && !gameState.timeSlowAbility) return false; // Kontrol güncellendi
     return true;
   });
 };
