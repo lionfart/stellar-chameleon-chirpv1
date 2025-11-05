@@ -196,7 +196,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ playerName, initialSoundVolume 
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    gameEngineRef.current = new GameEngine(ctx, handleLevelUp, handleOpenShop, handleCloseShop, handleUpdateGameData, playerName, initialSoundVolume); // Düzeltildi: 't' argümanı kaldırıldı
+    gameEngineRef.current = new GameEngine(ctx, handleLevelUp, handleOpenShop, handleCloseShop, handleUpdateGameData, playerName, initialSoundVolume, t); // NEW: Pass t to GameEngine
     gameEngineRef.current.init();
 
     if (!notificationsShownRef.current) {

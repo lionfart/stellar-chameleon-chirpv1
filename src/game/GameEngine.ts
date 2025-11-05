@@ -24,6 +24,7 @@ import { BossAttackVisual } from './BossAttackVisual';
 import { EntityManager } from './EntityManager';
 import { showSuccess, showError } from '@/utils/toast';
 import { LeaderboardEntry } from '@/components/LeaderboardDialog';
+import { TranslationKeys } from '@/i18n/translations'; // NEW: Import TranslationKeys
 
 interface ShopItem {
   id: string;
@@ -103,6 +104,7 @@ export class GameEngine {
   private gameOverSoundPlayed: boolean = false;
   private gameWinSoundPlayed: boolean = false;
   private backgroundMusicInstance: HTMLAudioElement | null = null;
+  private t: (key: TranslationKeys) => string; // NEW: Add translation function
 
   private gameState: GameState;
   private waveManager: WaveManager;
@@ -127,7 +129,7 @@ export class GameEngine {
     { id: 'buy_health_potion', name: 'Health Potion', description: 'Instantly restores 50 health.', cost: 50, type: 'consumable' },
   ];
 
-  constructor(ctx: CanvasRenderingContext2D, onLevelUp: () => void, onOpenShop: (items: ShopItem[], playerGold: number) => void, onCloseShop: () => void, onUpdateGameData: (gameData: GameDataProps) => void, playerName: string, initialSoundVolume: number) {
+  constructor(ctx: CanvasRenderingContext2D, onLevelUp: () => void, onOpenShop: (items: ShopItem[], playerGold: number) => void, onCloseShop: () => void, onUpdateGameData: (gameData: GameDataProps) => void, playerName: string, initialSoundVolume: number, t: (key: TranslationKeys) => string) { // NEW: Add t to constructor
     // console.log("GameEngine constructor called!"); // Removed for optimization
     this.ctx = ctx;
     this.inputHandler = new InputHandler();
@@ -137,6 +139,7 @@ export class GameEngine {
     this.onUpdateGameDataCallback = onUpdateGameData;
     this.soundManager = new SoundManager(this.onAllAssetsLoaded, initialSoundVolume);
     this.spriteManager = new SpriteManager(this.onAllAssetsLoaded);
+    this.t = t; // NEW: Assign t
 
     const player = new Player(this.worldWidth / 2, this.worldHeight / 2, 30, 200, 'blue', 100, this.triggerLevelUp, undefined, this.soundManager);
     const vendor = new Vendor(this.worldWidth / 2 + 200, this.worldHeight / 2, 50, undefined);
@@ -288,7 +291,7 @@ export class GameEngine {
     if (this.gameState.nextLetterIndex < this.gameState.princessNameLetters.length) {
       const nextLetter = this.gameState.princessNameLetters[this.gameState.nextLetterIndex];
       this.gameState.collectedLetters.push(nextLetter);
-      showSuccess(`Collected letter: ${nextLetter}!`);
+      showSuccess(this.t('collectedLetter') + ` ${nextLetter}!`); // NEW: Translate
       this.gameState.nextLetterIndex++;
 
       if (this.gameState.nextLetterIndex === this.gameState.princessNameLetters.length) {
@@ -351,12 +354,12 @@ export class GameEngine {
   purchaseItem = (itemId: string) => {
     const item = this.shopItems.find(i => i.id === itemId);
     if (!item) {
-      showError("Item not found!");
+      showError(this.t('itemNotFound')); // NEW: Translate
       return;
     }
 
     if (this.gameState.player.spendGold(item.cost)) {
-      showSuccess(`Purchased ${item.name}!`);
+      showSuccess(this.t('collectedLetter') + ` ${this.t(item.id as TranslationKeys)}!`); // NEW: Translate
       switch (itemId) {
         case 'buy_aura_weapon':
           this.gameState.auraWeapon = new AuraWeapon(10, 100, 0.5);
@@ -408,7 +411,7 @@ export class GameEngine {
         return true;
       }), this.gameState.player.gold);
     } else {
-      showError("Not enough gold!");
+      showError(this.t('notEnoughGold')); // NEW: Translate
     }
   }
 
@@ -597,8 +600,6 @@ export class GameEngine {
       return;
     }
 
-    deltaTime = Math.min(deltaTime, MAX_DELTA_TIME);
-
     if (this.gameState.isBossWarningActive && this.gameState.bossWarning) {
       const warningActive = this.gameState.bossWarning.update(deltaTime);
       if (!warningActive) {
@@ -739,7 +740,7 @@ export class GameEngine {
       this.ctx.fillStyle = 'white';
       this.ctx.font = '30px Arial';
       this.ctx.textAlign = 'center';
-      this.ctx.fillText('Loading Assets...', this.ctx.canvas.width / 2, this.ctx.canvas.height / 2);
+      this.ctx.fillText(this.t('loadingAssets'), this.ctx.canvas.width / 2, this.ctx.canvas.height / 2); // NEW: Translate
       return;
     }
 
@@ -777,7 +778,7 @@ export class GameEngine {
       this.ctx.textAlign = 'center';
       this.ctx.shadowColor = 'black';
       this.ctx.shadowBlur = 5;
-      this.ctx.fillText('Press F to interact with Vendor', this.ctx.canvas.width / 2, this.ctx.canvas.height - 50);
+      this.ctx.fillText(this.t('pressFToInteract'), this.ctx.canvas.width / 2, this.ctx.canvas.height - 50); // NEW: Translate
       this.ctx.shadowColor = 'transparent';
     }
 

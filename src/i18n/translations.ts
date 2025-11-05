@@ -122,6 +122,7 @@ export const translations = {
     "leaderboardDescription": "Top scores from brave knights!",
     "gold": "Gold",
     "levelUpShort": "Lv.",
+    "loadingAssets": "Loading Assets...", // NEW
   },
   tr: {
     "gameTitle": "Prenses Simge Kurtarma",
@@ -246,6 +247,7 @@ export const translations = {
     "leaderboardDescription": "Cesur şövalyelerin en yüksek skorları!",
     "gold": "Altın",
     "levelUpShort": "Sv.",
+    "loadingAssets": "Varlıklar Yükleniyor...", // NEW
   },
 };
 
