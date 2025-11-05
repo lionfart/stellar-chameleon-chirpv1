@@ -59,6 +59,10 @@ export class Projectile {
     });
 
     ctx.save();
+    ctx.translate(this.x - cameraX, this.y - cameraY);
+    const angle = Math.atan2(this.directionY, this.directionX);
+    ctx.rotate(angle + Math.PI / 2); // Rotate to point upwards by default
+
     // Apply shadow effect
     ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
     ctx.shadowBlur = 3;
@@ -67,11 +71,11 @@ export class Projectile {
 
     // Draw the main projectile
     if (this.sprite) {
-      ctx.drawImage(this.sprite, this.x - cameraX - this.radius, this.y - cameraY - this.radius, this.radius * 2, this.radius * 2);
+      ctx.drawImage(this.sprite, -this.radius, -this.radius, this.radius * 2, this.radius * 2);
     } else {
       const gradient = ctx.createRadialGradient(
-        this.x - cameraX, this.y - cameraY, this.radius * 0.2,
-        this.x - cameraX, this.y - cameraY, this.radius
+        0, 0, this.radius * 0.2,
+        0, 0, this.radius
       );
       gradient.addColorStop(0, 'rgba(255, 255, 255, 1)'); // White hot center
       gradient.addColorStop(0.5, `rgba(0, 191, 255, 1)`); // Deep Sky Blue
@@ -79,7 +83,7 @@ export class Projectile {
 
       ctx.fillStyle = gradient;
       ctx.beginPath();
-      ctx.arc(this.x - cameraX, this.y - cameraY, this.radius, 0, Math.PI * 2);
+      ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
       ctx.fill();
     }
     ctx.restore(); // Restore context to remove shadow

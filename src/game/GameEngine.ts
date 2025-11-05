@@ -242,6 +242,18 @@ export class GameEngine {
       }
       this.gameState.player.setSprite(playerAnimationFrames);
 
+      // Set animated enemy sprites (example for normal enemy)
+      const enemyNormalSprite = this.spriteManager.getSprite('enemy_normal');
+      if (enemyNormalSprite) {
+        // For simplicity, using the same sprite for all frames for now,
+        // but this could be extended with multiple frames for each enemy type.
+        this.gameState.enemies.forEach(enemy => {
+          if (enemy.color === 'red') { // Assuming 'red' is normal enemy
+            enemy.setSprite([enemyNormalSprite]);
+          }
+        });
+      }
+
       if (this.gameState.projectileWeapon) {
         this.gameState.projectileWeapon['projectileSprite'] = this.spriteManager.getSprite('player_projectile');
       }

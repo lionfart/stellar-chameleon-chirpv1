@@ -33,7 +33,7 @@ export class ShooterEnemy extends Enemy {
   }
 
   update(deltaTime: number, player: Player, separationVector: { x: number, y: number } = { x: 0, y: 0 }) {
-    super.update(deltaTime, player, separationVector);
+    super.update(deltaTime, player, separationVector); // Call super's update for movement and animation
 
     if (!this.isAlive()) {
       this.projectiles = [];
@@ -84,7 +84,7 @@ export class ShooterEnemy extends Enemy {
   }
 
   draw(ctx: CanvasRenderingContext2D, cameraX: number, cameraY: number) {
-    super.draw(ctx, cameraX, cameraY);
+    super.draw(ctx, cameraX, cameraY); // Call super's draw for enemy body and health bar
 
     this.projectiles.forEach(projectile => {
       projectile.draw(ctx, cameraX, cameraY);

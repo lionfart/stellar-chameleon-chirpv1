@@ -16,6 +16,13 @@ export class Enemy {
   private goldDrop: number;
   private onTakeDamageCallback: (x: number, y: number, damage: number) => void;
 
+  // Animation properties
+  private animationFrames: HTMLImageElement[] = []; // Array of sprites for animation
+  private currentFrameIndex: number = 0;
+  private animationTimer: number = 0;
+  private animationSpeed: number = 0.2; // seconds per frame
+  private isMoving: boolean = false;
+
   constructor(x: number, y: number, size: number, speed: number, color: string, maxHealth: number, sprite: HTMLImageElement | undefined, soundManager: SoundManager, goldDrop: number = 0, onTakeDamage: (x: number, y: number, damage: number) => void) {
     this.x = x;
     this.y = y;
@@ -28,6 +35,11 @@ export class Enemy {
     this.soundManager = soundManager;
     this.goldDrop = goldDrop;
     this.onTakeDamageCallback = onTakeDamage;
+  }
+
+  setSprite(sprites: HTMLImageElement[]) {
+    this.animationFrames = sprites;
+    this.sprite = sprites[0]; // Keep first frame as a fallback/default
   }
 
   update(deltaTime: number, player: Player, separationVector: { x: number, y: number } = { x: 0, y: 0 }) {
@@ -50,6 +62,22 @@ export class Enemy {
 
     this.x += moveX + separationVector.x * deltaTime;
     this.y += moveY + separationVector.y * deltaTime;
+
+    this.isMoving = (moveX !== 0 || moveY !== 0);
+
+    // Animation update
+    if (this.animationFrames.length > 1) { // Only animate if there are multiple frames
+      if (this.isMoving) {
+        this.animationTimer += deltaTime;
+        if (this.animationTimer >= this.animationSpeed) {
+          this.currentFrameIndex = (this.currentFrameIndex + 1) % this.animationFrames.length;
+          this.animationTimer = 0;
+        }
+      } else {
+        this.currentFrameIndex = 0; // Reset to idle frame
+        this.animationTimer = 0;
+      }
+    }
   }
 
   draw(ctx: CanvasRenderingContext2D, cameraX: number, cameraY: number) {
@@ -67,8 +95,10 @@ export class Enemy {
     ctx.shadowOffsetX = 5;
     ctx.shadowOffsetY = 5;
 
-    if (this.sprite) {
-      ctx.drawImage(this.sprite, -this.size / 2, -this.size / 2, this.size, this.size);
+    // Draw animated sprite if available, otherwise fallback to single sprite
+    const currentSprite = this.animationFrames[this.currentFrameIndex] || this.sprite;
+    if (currentSprite) {
+      ctx.drawImage(currentSprite, -this.size / 2, -this.size / 2, this.size, this.size);
     } else {
       ctx.fillStyle = this.color;
       ctx.beginPath();
@@ -97,7 +127,7 @@ export class Enemy {
     if (this.currentHealth < 0) {
       this.currentHealth = 0;
     }
-    console.log(`Enemy took ${amount} damage. Health: ${this.currentHealth}`);
+    // console.log(`Enemy took ${amount} damage. Health: ${this.currentHealth}`); // Removed for optimization
 
     if (!this.isAlive()) {
       this.soundManager.playSound('enemy_defeat');

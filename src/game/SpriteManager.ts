@@ -287,20 +287,38 @@ export class SpriteManager {
     `;
   }
 
-  // --- Other Sprites (unchanged) ---
+  // --- Enemy Sprites ---
   static getEnemyNormalSpriteSVG(size: number): string {
     return `
       <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <radialGradient id="enemyNormalGradient" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
-            <stop offset="0%" stop-color="#EF5350" />
-            <stop offset="100%" stop-color="#D32F2F" />
-          </radialGradient>
+          <linearGradient id="goblinBody" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#5cb85c" />
+            <stop offset="100%" stop-color="#449d44" />
+          </linearGradient>
+          <linearGradient id="goblinEyes" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#ffeb3b" />
+            <stop offset="100%" stop-color="#fbc02d" />
+          </linearGradient>
         </defs>
-        <circle cx="${size / 2}" cy="${size / 2}" r="${size / 2 - 2}" fill="url(#enemyNormalGradient)" stroke="#B71C1C" stroke-width="2"/>
-        <circle cx="${size / 2 - size / 6}" cy="${size / 2 - size / 6}" r="${size / 10}" fill="#FFFFFF"/>
-        <circle cx="${size / 2 + size / 6}" cy="${size / 2 - size / 6}" r="${size / 10}" fill="#FFFFFF"/>
-        <path d="M${size / 2 - size / 8},${size * 2 / 3} Q${size / 2},${size * 3 / 4} ${size / 2 + size / 8},${size * 2 / 3}" stroke="#FFFFFF" stroke-width="2" fill="none"/>
+        <!-- Body -->
+        <ellipse cx="${size / 2}" cy="${size * 0.6}" rx="${size * 0.4}" ry="${size * 0.3}" fill="url(#goblinBody)" stroke="#398439" stroke-width="1.5"/>
+        <!-- Head -->
+        <circle cx="${size / 2}" cy="${size * 0.35}" r="${size * 0.25}" fill="url(#goblinBody)" stroke="#398439" stroke-width="1.5"/>
+        <!-- Ears -->
+        <path d="M${size * 0.25},${size * 0.2} Q${size * 0.2},${size * 0.1} ${size * 0.3},${size * 0.15}" fill="url(#goblinBody)" stroke="#398439" stroke-width="1"/>
+        <path d="M${size * 0.75},${size * 0.2} Q${size * 0.8},${size * 0.1} ${size * 0.7},${size * 0.15}" fill="url(#goblinBody)" stroke="#398439" stroke-width="1"/>
+        <!-- Eyes -->
+        <circle cx="${size * 0.4}" cy="${size * 0.3}" r="${size * 0.08}" fill="url(#goblinEyes)"/>
+        <circle cx="${size * 0.6}" cy="${size * 0.3}" r="${size * 0.08}" fill="url(#goblinEyes)"/>
+        <!-- Pupils -->
+        <circle cx="${size * 0.42}" cy="${size * 0.32}" r="${size * 0.03}" fill="#000"/>
+        <circle cx="${size * 0.62}" cy="${size * 0.32}" r="${size * 0.03}" fill="#000"/>
+        <!-- Mouth -->
+        <path d="M${size * 0.4},${size * 0.45} Q${size / 2},${size * 0.5} ${size * 0.6},${size * 0.45}" stroke="#8B4513" stroke-width="1.5" fill="none"/>
+        <!-- Simple Club (optional) -->
+        <rect x="${size * 0.7}" y="${size * 0.5}" width="${size * 0.1}" height="${size * 0.3}" fill="#8B4513" transform="rotate(30 ${size * 0.7} ${size * 0.5})"/>
+        <circle cx="${size * 0.75}" cy="${size * 0.45}" r="${size * 0.08}" fill="#A0522D"/>
       </svg>
     `;
   }
@@ -309,15 +327,29 @@ export class SpriteManager {
     return `
       <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <linearGradient id="enemyFastGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#FFEB3B" />
-            <stop offset="100%" stop-color="#FFC107" />
+          <linearGradient id="wolfBody" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#757575" />
+            <stop offset="100%" stop-color="#424242" />
+          </linearGradient>
+          <linearGradient id="wolfEyes" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#ffc107" />
+            <stop offset="100%" stop-color="#ff9800" />
           </linearGradient>
         </defs>
-        <polygon points="${size / 2},0 0,${size} ${size},${size}" fill="url(#enemyFastGradient)" stroke="#FFA000" stroke-width="2"/>
-        <circle cx="${size / 2}" cy="${size * 2 / 3}" r="${size / 8}" fill="#FFFFFF"/>
-        <path d="M${size * 0.2},${size * 0.8} L${size * 0.3},${size * 0.7} L${size * 0.4},${size * 0.8}" stroke="#FFFFFF" stroke-width="1" fill="none"/>
-        <path d="M${size * 0.8},${size * 0.8} L${size * 0.7},${size * 0.7} L${size * 0.6},${size * 0.8}" stroke="#FFFFFF" stroke-width="1" fill="none"/>
+        <!-- Body -->
+        <ellipse cx="${size / 2}" cy="${size * 0.7}" rx="${size * 0.4}" ry="${size * 0.25}" fill="url(#wolfBody)" stroke="#212121" stroke-width="1.5"/>
+        <!-- Head -->
+        <path d="M${size * 0.3},${size * 0.4} Q${size * 0.5},${size * 0.2} ${size * 0.7},${size * 0.4} L${size * 0.6},${size * 0.5} L${size * 0.4},${size * 0.5} Z" fill="url(#wolfBody)" stroke="#212121" stroke-width="1.5"/>
+        <!-- Ears -->
+        <polygon points="${size * 0.35},${size * 0.3} ${size * 0.45},${size * 0.15} ${size * 0.4},${size * 0.25}" fill="url(#wolfBody)" stroke="#212121" stroke-width="1"/>
+        <polygon points="${size * 0.65},${size * 0.3} ${size * 0.55},${size * 0.15} ${size * 0.6},${size * 0.25}" fill="url(#wolfBody)" stroke="#212121" stroke-width="1"/>
+        <!-- Eyes -->
+        <circle cx="${size * 0.45}" cy="${size * 0.35}" r="${size * 0.05}" fill="url(#wolfEyes)"/>
+        <circle cx="${size * 0.55}" cy="${size * 0.35}" r="${size * 0.05}" fill="url(#wolfEyes)"/>
+        <!-- Snout -->
+        <path d="M${size * 0.48},${size * 0.45} Q${size * 0.5},${size * 0.48} ${size * 0.52},${size * 0.45}" fill="#000"/>
+        <!-- Tail (simple) -->
+        <path d="M${size * 0.15},${size * 0.6} Q${size * 0.05},${size * 0.5} ${size * 0.1},${size * 0.7}" stroke="url(#wolfBody)" stroke-width="2" fill="none"/>
       </svg>
     `;
   }
@@ -326,15 +358,32 @@ export class SpriteManager {
     return `
       <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <linearGradient id="enemyTankyGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#9C27B0" />
-            <stop offset="100%" stop-color="#7B1FA2" />
+          <linearGradient id="ogreBody" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#8BC34A" />
+            <stop offset="100%" stop-color="#689F38" />
+          </linearGradient>
+          <linearGradient id="ogreArmor" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#B0BEC5" />
+            <stop offset="100%" stop-color="#78909C" />
           </linearGradient>
         </defs>
-        <rect x="2" y="2" width="${size - 4}" height="${size - 4}" fill="url(#enemyTankyGradient)" stroke="#6A1B9A" stroke-width="2"/>
-        <rect x="${size / 4}" y="${size / 4}" width="${size / 2}" height="${size / 2}" fill="#FFFFFF" opacity="0.3"/>
-        <line x1="${size / 4}" y1="${size / 2}" x2="${size * 3 / 4}" y2="${size / 2}" stroke="#FFFFFF" stroke-width="2"/>
-        <line x1="${size / 2}" y1="${size / 4}" x2="${size / 2}" y2="${size * 3 / 4}" stroke="#FFFFFF" stroke-width="2"/>
+        <!-- Body -->
+        <ellipse cx="${size / 2}" cy="${size * 0.65}" rx="${size * 0.45}" ry="${size * 0.35}" fill="url(#ogreBody)" stroke="#33691E" stroke-width="2"/>
+        <!-- Head -->
+        <circle cx="${size / 2}" cy="${size * 0.3}" r="${size * 0.28}" fill="url(#ogreBody)" stroke="#33691E" stroke-width="2"/>
+        <!-- Horns -->
+        <path d="M${size * 0.3},${size * 0.15} Q${size * 0.2},${size * 0.05} ${size * 0.25},${size * 0.25}" fill="#8B4513" stroke="#5A2D0A" stroke-width="1"/>
+        <path d="M${size * 0.7},${size * 0.15} Q${size * 0.8},${size * 0.05} ${size * 0.75},${size * 0.25}" fill="#8B4513" stroke="#5A2D0A" stroke-width="1"/>
+        <!-- Eyes -->
+        <circle cx="${size * 0.4}" cy="${size * 0.25}" r="${size * 0.06}" fill="#FF0000"/>
+        <circle cx="${size * 0.6}" cy="${size * 0.25}" r="${size * 0.06}" fill="#FF0000"/>
+        <!-- Mouth -->
+        <path d="M${size * 0.4},${size * 0.4} Q${size / 2},${size * 0.45} ${size * 0.6},${size * 0.4}" stroke="#000" stroke-width="2" fill="none"/>
+        <!-- Armor Plate (chest) -->
+        <path d="M${size * 0.3},${size * 0.5} L${size * 0.7},${size * 0.5} L${size * 0.65},${size * 0.7} L${size * 0.35},${size * 0.7} Z" fill="url(#ogreArmor)" stroke="#546E7A" stroke-width="1.5"/>
+        <!-- Club (optional) -->
+        <rect x="${size * 0.7}" y="${size * 0.6}" width="${size * 0.15}" height="${size * 0.3}" fill="#8B4513" transform="rotate(45 ${size * 0.7} ${size * 0.6})"/>
+        <circle cx="${size * 0.8}" cy="${size * 0.6}" r="${size * 0.1}" fill="#A0522D"/>
       </svg>
     `;
   }
@@ -343,85 +392,108 @@ export class SpriteManager {
     return `
       <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <linearGradient id="enemyShooterGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#4DD0E1" />
-            <stop offset="100%" stop-color="#00ACC1" />
+          <linearGradient id="archerBody" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#8B4513" />
+            <stop offset="100%" stop-color="#5A2D0A" />
+          </linearGradient>
+          <linearGradient id="archerClothes" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#A0522D" />
+            <stop offset="100%" stop-color="#8B4513" />
+          </linearGradient>
+          <linearGradient id="archerBow" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#C0C0C0" />
+            <stop offset="100%" stop-color="#808080" />
           </linearGradient>
         </defs>
-        <circle cx="${size / 2}" cy="${size / 2}" r="${size / 2 - 2}" fill="url(#enemyShooterGradient)" stroke="#00838F" stroke-width="2"/>
-        <rect x="${size * 0.4}" y="${size * 0.1}" width="${size * 0.2}" height="${size * 0.3}" fill="#FFFFFF"/>
-        <circle cx="${size / 2}" cy="${size * 0.25}" r="${size * 0.08}" fill="#FF5722"/>
-        <circle cx="${size * 0.3}" cy="${size * 0.6}" r="${size * 0.1}" fill="#FFFFFF"/>
-        <circle cx="${size * 0.7}" cy="${size * 0.6}" r="${size * 0.1}" fill="#FFFFFF"/>
+        <!-- Body -->
+        <rect x="${size * 0.4}" y="${size * 0.4}" width="${size * 0.2}" height="${size * 0.4}" fill="url(#archerClothes)" stroke="#5A2D0A" stroke-width="1"/>
+        <!-- Head -->
+        <circle cx="${size / 2}" cy="${size * 0.35}" r="${size * 0.15}" fill="url(#archerBody)" stroke="#5A2D0A" stroke-width="1"/>
+        <!-- Hood -->
+        <path d="M${size * 0.3},${size * 0.25} Q${size * 0.2},${size * 0.15} ${size / 2},${size * 0.1} Q${size * 0.8},${size * 0.15} ${size * 0.7},${size * 0.25} Z" fill="url(#archerClothes)" stroke="#5A2D0A" stroke-width="1"/>
+        <!-- Eyes -->
+        <circle cx="${size * 0.45}" cy="${size * 0.32}" r="${size * 0.03}" fill="#000"/>
+        <circle cx="${size * 0.55}" cy="${size * 0.32}" r="${size * 0.03}" fill="#000"/>
+        <!-- Bow -->
+        <path d="M${size * 0.2},${size * 0.5} Q${size * 0.25},${size * 0.3} ${size * 0.5},${size * 0.35} Q${size * 0.75},${size * 0.3} ${size * 0.8},${size * 0.5}" stroke="url(#archerBow)" stroke-width="2" fill="none"/>
+        <line x1="${size * 0.2}" y1="${size * 0.5}" x2="${size * 0.8}" y2="${size * 0.5}" stroke="#000" stroke-width="1"/>
+        <!-- Arrow (optional) -->
+        <line x1="${size * 0.5}" y1="${size * 0.5}" x2="${size * 0.65}" y2="${size * 0.5}" stroke="#8B4513" stroke-width="1.5"/>
+        <polygon points="${size * 0.65},${size * 0.48} ${size * 0.7},${size * 0.5} ${size * 0.65},${size * 0.52}" fill="#8B4513"/>
       </svg>
     `;
   }
 
+  // --- Projectile Sprites ---
   static getProjectileSpriteSVG(size: number): string {
-    // Generic projectile for enemies
+    // Enemy arrow
     return `
       <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <radialGradient id="projectileGradient" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
-            <stop offset="0%" stop-color="#00BCD4" />
-            <stop offset="100%" stop-color="#0097A7" />
-          </radialGradient>
+          <linearGradient id="arrowShaft" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#8B4513" />
+            <stop offset="100%" stop-color="#5A2D0A" />
+          </linearGradient>
         </defs>
-        <circle cx="${size / 2}" cy="${size / 2}" r="${size / 2 - 1}" fill="url(#projectileGradient)" stroke="#006064" stroke-width="1"/>
-        <circle cx="${size / 2}" cy="${size / 2}" r="${size / 4}" fill="#FFFFFF" opacity="0.7"/>
+        <rect x="${size * 0.45}" y="0" width="${size * 0.1}" height="${size}" fill="url(#arrowShaft)"/>
+        <polygon points="${size * 0.4},0 ${size * 0.6},0 ${size / 2},${size * 0.2}" fill="#C0C0C0"/>
+        <polygon points="${size * 0.4},${size} ${size * 0.6},${size} ${size / 2},${size * 0.8}" fill="#FFFFFF"/>
       </svg>
     `;
   }
 
   static getPlayerProjectileSpriteSVG(size: number): string {
-    // Distinct projectile for player (e.g., green/yellow)
+    // Player magic bolt
     return `
       <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <radialGradient id="playerProjectileGradient" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
-            <stop offset="0%" stop-color="#8BC34A" />
-            <stop offset="100%" stop-color="#689F38" />
+          <radialGradient id="magicBoltGradient" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+            <stop offset="0%" stop-color="#81D4FA" />
+            <stop offset="100%" stop-color="#03A9F4" />
           </radialGradient>
         </defs>
-        <polygon points="${size / 2},0 ${size},${size / 2} ${size / 2},${size} 0,${size / 2}" fill="url(#playerProjectileGradient)" stroke="#33691E" stroke-width="1"/>
-        <circle cx="${size / 2}" cy="${size / 2}" r="${size / 4}" fill="#FFEB3B" opacity="0.9"/>
+        <circle cx="${size / 2}" cy="${size / 2}" r="${size / 2 - 1}" fill="url(#magicBoltGradient)" stroke="#0288D1" stroke-width="1"/>
+        <circle cx="${size / 2}" cy="${size / 2}" r="${size / 4}" fill="#FFFFFF" opacity="0.8"/>
+        <path d="M${size * 0.2},${size * 0.5} L${size * 0.8},${size * 0.5} M${size * 0.5},${size * 0.2} L${size * 0.5},${size * 0.8}" stroke="#FFFFFF" stroke-width="1"/>
       </svg>
     `;
   }
 
   static getHomingMissileSpriteSVG(size: number): string {
+    // Homing magic orb
     return `
       <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <linearGradient id="missileGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#FF5722" />
-            <stop offset="100%" stop-color="#E64A19" />
-          </linearGradient>
+          <radialGradient id="homingOrbGradient" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+            <stop offset="0%" stop-color="#FF8A65" />
+            <stop offset="100%" stop-color="#FF5722" />
+          </radialGradient>
         </defs>
-        <path d="M${size / 2},0 L${size * 0.75},${size * 0.25} L${size * 0.75},${size * 0.75} L${size / 2},${size} L${size * 0.25},${size * 0.75} L${size * 0.25},${size * 0.25} Z" fill="url(#missileGradient)" stroke="#BF360C" stroke-width="1"/>
-        <circle cx="${size / 2}" cy="${size * 0.25}" r="${size * 0.1}" fill="#FFEB3B"/>
-        <rect x="${size * 0.4}" y="${size * 0.7}" width="${size * 0.2}" height="${size * 0.2}" fill="#FFFFFF" opacity="0.5"/>
+        <circle cx="${size / 2}" cy="${size / 2}" r="${size / 2 - 2}" fill="url(#homingOrbGradient)" stroke="#E64A19" stroke-width="2"/>
+        <path d="M${size * 0.3},${size * 0.4} L${size * 0.7},${size * 0.4} L${size * 0.5},${size * 0.6} Z" fill="#FFFFFF" opacity="0.7"/>
+        <circle cx="${size * 0.5}" cy="${size * 0.5}" r="${size * 0.1}" fill="#FFEB3B"/>
       </svg>
     `;
   }
 
   static getLaserBeamSpriteSVG(size: number): string {
+    // Laser beam (more magical/arcane)
     return `
       <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <linearGradient id="laserBeamGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#00FFFF" />
-            <stop offset="100%" stop-color="#00BFFF" />
+          <linearGradient id="arcaneBeamGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#EEFF41" />
+            <stop offset="100%" stop-color="#C6FF00" />
           </linearGradient>
         </defs>
-        <rect x="${size * 0.4}" y="0" width="${size * 0.2}" height="${size}" fill="url(#laserBeamGradient)" />
-        <circle cx="${size / 2}" cy="${size / 2}" r="${size * 0.15}" fill="#FFFFFF" opacity="0.8"/>
-        <path d="M${size * 0.4},${size * 0.1} L${size * 0.6},${size * 0.1} L${size * 0.55},${size * 0.2} L${size * 0.45},${size * 0.2} Z" fill="#FFD700"/>
-        <path d="M${size * 0.4},${size * 0.9} L${size * 0.6},${size * 0.9} L${size * 0.55},${size * 0.8} L${size * 0.45},${size * 0.8} Z" fill="#FFD700"/>
+        <rect x="${size * 0.4}" y="0" width="${size * 0.2}" height="${size}" fill="url(#arcaneBeamGradient)" />
+        <path d="M${size * 0.4},${size * 0.1} L${size * 0.6},${size * 0.1} L${size * 0.55},${size * 0.2} L${size * 0.45},${size * 0.2} Z" fill="#FFFFFF" opacity="0.8"/>
+        <path d="M${size * 0.4},${size * 0.9} L${size * 0.6},${size * 0.9} L${size * 0.55},${size * 0.8} L${size * 0.45},${size * 0.8} Z" fill="#FFFFFF" opacity="0.8"/>
       </svg>
     `;
   }
 
+  // --- Item/Power-up Sprites ---
   static getExperienceGemSpriteSVG(size: number): string {
     return `
       <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
@@ -470,6 +542,7 @@ export class SpriteManager {
     `;
   }
 
+  // --- Environment/NPC Sprites ---
   static getBackgroundTileSVG(size: number): string {
     return `
       <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
@@ -509,20 +582,39 @@ export class SpriteManager {
     return `
       <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <linearGradient id="vendorGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <linearGradient id="vendorRobe" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#8B4513" />
+            <stop offset="100%" stop-color="#5A2D0A" />
+          </linearGradient>
+          <linearGradient id="vendorSkin" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#FFDAB9" />
+            <stop offset="100%" stop-color="#E0BBE4" />
+          </linearGradient>
+          <linearGradient id="vendorCoin" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stop-color="#FFD700" />
             <stop offset="100%" stop-color="#DAA520" />
           </linearGradient>
         </defs>
-        <rect x="${size * 0.1}" y="${size * 0.3}" width="${size * 0.8}" height="${size * 0.6}" rx="${size * 0.1}" ry="${size * 0.1}" fill="url(#vendorGradient)" stroke="#B8860B" stroke-width="2"/>
-        <circle cx="${size / 2}" cy="${size * 0.25}" r="${size * 0.2}" fill="#8B4513" stroke="#5A2D0A" stroke-width="2"/>
-        <path d="M${size * 0.4},${size * 0.25} L${size * 0.6},${size * 0.25} M${size / 2},${size * 0.15} L${size / 2},${size * 0.35}" stroke="#FFFFFF" stroke-width="2"/>
-        <text x="${size / 2}" y="${size * 0.7}" font-family="Arial" font-size="${size * 0.25}" fill="#FFFFFF" text-anchor="middle" alignment-baseline="middle">$</text>
+        <!-- Body (Robe) -->
+        <rect x="${size * 0.3}" y="${size * 0.4}" width="${size * 0.4}" height="${size * 0.5}" rx="${size * 0.05}" ry="${size * 0.05}" fill="url(#vendorRobe)" stroke="#444" stroke-width="1"/>
+        <!-- Head -->
+        <circle cx="${size / 2}" cy="${size * 0.35}" r="${size * 0.15}" fill="url(#vendorSkin)" stroke="#444" stroke-width="1"/>
+        <!-- Hood -->
+        <path d="M${size * 0.25},${size * 0.25} Q${size * 0.2},${size * 0.15} ${size / 2},${size * 0.1} Q${size * 0.8},${size * 0.15} ${size * 0.75},${size * 0.25} Z" fill="url(#vendorRobe)" stroke="#444" stroke-width="1"/>
+        <!-- Eyes (simple) -->
+        <circle cx="${size * 0.45}" cy="${size * 0.32}" r="${size * 0.02}" fill="#000"/>
+        <circle cx="${size * 0.55}" cy="${size * 0.32}" r="${size * 0.02}" fill="#000"/>
+        <!-- Arms (holding coin) -->
+        <rect x="${size * 0.25}" y="${size * 0.5}" width="${size * 0.1}" height="${size * 0.2}" fill="url(#vendorRobe)" transform="rotate(-15 ${size * 0.25} ${size * 0.5})"/>
+        <rect x="${size * 0.65}" y="${size * 0.5}" width="${size * 0.1}" height="${size * 0.2}" fill="url(#vendorRobe)" transform="rotate(15 ${size * 0.75} ${size * 0.5})"/>
+        <!-- Coin -->
+        <circle cx="${size / 2}" cy="${size * 0.6}" r="${size * 0.1}" fill="url(#vendorCoin)" stroke="#B8860B" stroke-width="1"/>
+        <text x="${size / 2}" y="${size * 0.62}" font-family="Arial" font-size="${size * 0.1}" fill="#FFFFFF" text-anchor="middle" alignment-baseline="middle">$</text>
       </svg>
     `;
   }
 
-  // Generic Boss Sprite (fallback)
+  // --- Boss Sprites ---
   static getBossSpriteSVG(size: number): string {
     return `
       <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
@@ -541,7 +633,6 @@ export class SpriteManager {
     `;
   }
 
-  // New letter-specific boss sprites
   static getBossSSpriteSVG(size: number): string {
     return `
       <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">

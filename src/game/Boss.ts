@@ -34,7 +34,7 @@ export class Boss extends Enemy {
     this.onAddBossAttackVisual = onAddBossAttackVisual;
     this.onAddBossProjectile = onAddBossProjectile; // NEW: Assign callback
     this.onDefeatCallback = () => {};
-    console.log(`Boss ${this.bossName} spawned! Health: ${this.maxHealth}`);
+    // console.log(`Boss ${this.bossName} spawned! Health: ${this.maxHealth}`); // Removed for optimization
   }
 
   setOnDefeatCallback(callback: () => void) {
@@ -50,7 +50,7 @@ export class Boss extends Enemy {
   }
 
   update(deltaTime: number, player: Player, separationVector: { x: number, y: number } = { x: 0, y: 0 }) {
-    super.update(deltaTime, player, separationVector);
+    super.update(deltaTime, player, separationVector); // Call super's update for movement and animation
 
     if (!this.isAlive()) return;
 
@@ -65,7 +65,7 @@ export class Boss extends Enemy {
   }
 
   draw(ctx: CanvasRenderingContext2D, cameraX: number, cameraY: number) {
-    super.draw(ctx, cameraX, cameraY);
+    super.draw(ctx, cameraX, cameraY); // Call super's draw for boss body and health bar
 
     if (!this.isAlive()) return;
 
@@ -84,7 +84,7 @@ export class Boss extends Enemy {
     for (let i = 0; i < this.phaseThresholds.length; i++) {
       if (healthRatio <= this.phaseThresholds[i] && this.phase <= i) {
         this.phase = i + 1;
-        console.log(`${this.bossName} entered Phase ${this.phase}!`);
+        // console.log(`${this.bossName} entered Phase ${this.phase}!`); // Removed for optimization
         this.onPhaseChange();
         break;
       }
@@ -140,7 +140,7 @@ export class Boss extends Enemy {
   }
 
   private performRadialProjectileAttack(player: Player) {
-    console.log(`${this.bossName} performs Radial Projectile Attack!`);
+    // console.log(`${this.bossName} performs Radial Projectile Attack!`); // Removed for optimization
     const numProjectiles = 8 + this.phase * 2;
     const projectileSpeed = 150 + this.phase * 20;
     const projectileDamage = 10 + this.phase * 5;
@@ -167,7 +167,7 @@ export class Boss extends Enemy {
   }
 
   private performTargetedProjectileAttack(player: Player) {
-    console.log(`${this.bossName} performs Targeted Projectile Attack!`);
+    // console.log(`${this.bossName} performs Targeted Projectile Attack!`); // Removed for optimization
     const numProjectiles = 3 + this.phase;
     const projectileSpeed = 200 + this.phase * 30;
     const projectileDamage = 15 + this.phase * 5;
@@ -202,7 +202,7 @@ export class Boss extends Enemy {
   }
 
   private performGroundSlamAttack(player: Player) {
-    console.log(`${this.bossName} performs Ground Slam Attack!`);
+    // console.log(`${this.bossName} performs Ground Slam Attack!`); // Removed for optimization
     const attackRadius = this.size * (2 + this.phase * 0.5);
     const attackDamage = 20 + this.phase * 10;
     const telegraphDuration = 1.0; // Time for player to react
