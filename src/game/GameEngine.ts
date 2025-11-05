@@ -128,7 +128,7 @@ export class GameEngine {
   ];
 
   constructor(ctx: CanvasRenderingContext2D, onLevelUp: () => void, onOpenShop: (items: ShopItem[], playerGold: number) => void, onCloseShop: () => void, onUpdateGameData: (gameData: GameDataProps) => void, playerName: string, initialSoundVolume: number) {
-    console.log("GameEngine constructor called!");
+    // console.log("GameEngine constructor called!"); // Removed for optimization
     this.ctx = ctx;
     this.inputHandler = new InputHandler();
     this.onLevelUpCallback = onLevelUp;
@@ -174,7 +174,13 @@ export class GameEngine {
   }
 
   private loadAssets() {
-    this.spriteManager.loadSprite('player', SpriteManager.getPlayerSpriteSVG(this.gameState.player.size * 2));
+    const playerSize = this.gameState.player.size * 2; // Use player's size for sprite scaling
+    this.spriteManager.loadSprite('player_idle', SpriteManager.getPlayerIdleSpriteSVG(playerSize));
+    this.spriteManager.loadSprite('player_walk_0', SpriteManager.getPlayerWalk0SpriteSVG(playerSize));
+    this.spriteManager.loadSprite('player_walk_1', SpriteManager.getPlayerWalk1SpriteSVG(playerSize));
+    this.spriteManager.loadSprite('player_walk_2', SpriteManager.getPlayerWalk2SpriteSVG(playerSize));
+    this.spriteManager.loadSprite('player_walk_3', SpriteManager.getPlayerWalk3SpriteSVG(playerSize));
+
     this.spriteManager.loadSprite('enemy_normal', SpriteManager.getEnemyNormalSpriteSVG(40));
     this.spriteManager.loadSprite('enemy_fast', SpriteManager.getEnemyFastSpriteSVG(30));
     this.spriteManager.loadSprite('enemy_tanky', SpriteManager.getEnemyTankySpriteSVG(50));
@@ -226,7 +232,16 @@ export class GameEngine {
       this.assetsLoaded = true;
       // console.log("All game assets (sprites and sounds) loaded!"); // Removed for optimization
 
-      this.gameState.player.setSprite(this.spriteManager.getSprite('player'));
+      // Set animated player sprites
+      const playerAnimationFrames: HTMLImageElement[] = [];
+      const idleFrame = this.spriteManager.getSprite('player_idle');
+      if (idleFrame) playerAnimationFrames.push(idleFrame);
+      for (let i = 0; i < 4; i++) { // Assuming 4 walk frames
+        const walkFrame = this.spriteManager.getSprite(`player_walk_${i}`);
+        if (walkFrame) playerAnimationFrames.push(walkFrame);
+      }
+      this.gameState.player.setSprite(playerAnimationFrames);
+
       if (this.gameState.projectileWeapon) {
         this.gameState.projectileWeapon['projectileSprite'] = this.spriteManager.getSprite('player_projectile');
       }

@@ -6,7 +6,7 @@ import { ExplosionAbility } from './ExplosionAbility';
 import { SoundManager } from './SoundManager';
 import { TimeSlowAbility } from './TimeSlowAbility';
 import { Enemy } from './Enemy';
-import { LaserBeamWeapon } from './LaserBeamWeapon'; // Import LaserBeamWeapon
+import { LaserBeamWeapon } from './LaserBeamWeapon';
 
 export class Player {
   x: number;
@@ -25,11 +25,17 @@ export class Player {
   private healAbility: HealAbility | null = null;
   private explosionAbility: ExplosionAbility | null = null;
   private timeSlowAbility: TimeSlowAbility | null = null;
-  // private laserBeamWeapon: LaserBeamWeapon | null = null; // REMOVED: Laser Beam Weapon reference is no longer a player ability
-  private sprite: HTMLImageElement | undefined;
+  private sprite: HTMLImageElement | undefined; // Single sprite for fallback/initial
   private soundManager: SoundManager;
   private hitTimer: number = 0;
   lastHealTime: number = 0;
+
+  // Animation properties
+  private animationFrames: HTMLImageElement[] = []; // Array of sprites for animation
+  private currentFrameIndex: number = 0;
+  private animationTimer: number = 0;
+  private animationSpeed: number = 0.15; // seconds per frame
+  private isMoving: boolean = false;
 
   // Dash properties
   private dashSpeedMultiplier: number = 2.5;
@@ -58,15 +64,17 @@ export class Player {
     this.experienceToNextLevel = 100;
     this.gold = 0;
     this.onLevelUpCallback = onLevelUp;
-    this.sprite = sprite;
+    this.sprite = sprite; // Fallback or initial sprite
     this.soundManager = soundManager;
     this.baseMagnetRadius = 50;
     this.experienceMultiplier = 1;
     this.goldMultiplier = 1;
   }
 
-  setSprite(sprite: HTMLImageElement | undefined) {
-    this.sprite = sprite;
+  // Updated setSprite to accept an array of sprites for animation
+  setSprite(sprites: HTMLImageElement[]) {
+    this.animationFrames = sprites;
+    this.sprite = sprites[0]; // Keep first frame as a fallback/default
   }
 
   setShieldAbility(shieldAbility: ShieldAbility) {
@@ -85,11 +93,6 @@ export class Player {
     this.timeSlowAbility = timeSlowAbility;
   }
 
-  // REMOVED: Setter for Laser Beam Weapon as it's no longer a player ability
-  // setLaserBeamWeapon(laserBeamWeapon: LaserBeamWeapon) {
-  //   this.laserBeamWeapon = laserBeamWeapon;
-  // }
-
   update(input: InputHandler, deltaTime: number, worldWidth: number, worldHeight: number) {
     if (!this.isAlive()) return;
 
@@ -101,23 +104,25 @@ export class Player {
       this.hitTimer -= deltaTime;
     }
 
+    let movedX = 0;
+    let movedY = 0;
+
     if (input.isPressed('shift') && !this.isDashing && this.currentDashCooldown <= 0) {
       this.isDashing = true;
       this.currentDashDuration = this.dashDuration;
       this.currentDashCooldown = this.dashCooldown;
       this.soundManager.playSound('dash');
-      console.log("Dash activated!");
+      // console.log("Dash activated!"); // Removed for optimization
     }
 
-    let moveAmount = this.speed * deltaTime;
-
+    let currentSpeed = this.speed;
     if (this.isDashing) {
-      moveAmount *= this.dashSpeedMultiplier;
+      currentSpeed *= this.dashSpeedMultiplier;
       this.currentDashDuration -= deltaTime;
       this.dashTrail.push({ x: this.x, y: this.y, alpha: 1, size: this.size });
       if (this.currentDashDuration <= 0) {
         this.isDashing = false;
-        console.log("Dash ended.");
+        // console.log("Dash ended."); // Removed for optimization
       }
     }
 
@@ -127,22 +132,40 @@ export class Player {
       return trail.alpha > 0 && trail.size > 0;
     });
 
-
     if (input.isPressed('w') || input.isPressed('arrowup')) {
-      this.y -= moveAmount;
+      movedY -= currentSpeed * deltaTime;
     }
     if (input.isPressed('s') || input.isPressed('arrowdown')) {
-      this.y += moveAmount;
+      movedY += currentSpeed * deltaTime;
     }
     if (input.isPressed('a') || input.isPressed('arrowleft')) {
-      this.x -= moveAmount;
+      movedX -= currentSpeed * deltaTime;
     }
     if (input.isPressed('d') || input.isPressed('arrowright')) {
-      this.x += moveAmount;
+      movedX += currentSpeed * deltaTime;
     }
+
+    this.x += movedX;
+    this.y += movedY;
 
     this.x = clamp(this.x, this.size / 2, worldWidth - this.size / 2);
     this.y = clamp(this.y, this.size / 2, worldHeight - this.size / 2);
+
+    this.isMoving = (movedX !== 0 || movedY !== 0);
+
+    // Animation update
+    if (this.animationFrames.length > 1) { // Only animate if there are multiple frames
+      if (this.isMoving) {
+        this.animationTimer += deltaTime;
+        if (this.animationTimer >= this.animationSpeed) {
+          this.currentFrameIndex = (this.currentFrameIndex + 1) % this.animationFrames.length;
+          this.animationTimer = 0;
+        }
+      } else {
+        this.currentFrameIndex = 0; // Reset to idle frame
+        this.animationTimer = 0;
+      }
+    }
   }
 
   handleAbilityInput(input: InputHandler, enemies: Enemy[]) {
@@ -165,11 +188,6 @@ export class Player {
     if (input.isPressed('t') && this.timeSlowAbility) {
       this.timeSlowAbility.triggerSlow(enemies);
     }
-
-    // REMOVED: Laser Beam Weapon activation input as it's now automatic
-    // if (input.isPressed('x') && this.laserBeamWeapon) {
-    //   this.laserBeamWeapon.triggerBeam(this.x, this.y, enemies);
-    // }
   }
 
   draw(ctx: CanvasRenderingContext2D, cameraX: number, cameraY: number) {
@@ -196,8 +214,10 @@ export class Player {
     ctx.shadowOffsetX = 5;
     ctx.shadowOffsetY = 5;
 
-    if (this.sprite) {
-      ctx.drawImage(this.sprite, -this.size / 2, -this.size / 2, this.size, this.size);
+    // Draw animated sprite if available, otherwise fallback to single sprite
+    const currentSprite = this.animationFrames[this.currentFrameIndex] || this.sprite;
+    if (currentSprite) {
+      ctx.drawImage(currentSprite, -this.size / 2, -this.size / 2, this.size, this.size);
     } else {
       ctx.fillStyle = this.color;
       ctx.beginPath();
@@ -248,9 +268,9 @@ export class Player {
       if (this.currentHealth < 0) {
         this.currentHealth = 0;
       }
-      console.log(`Player took ${remainingDamage} damage. Health: ${this.currentHealth}`);
+      // console.log(`Player took ${remainingDamage} damage. Health: ${this.currentHealth}`); // Removed for optimization
     } else {
-      console.log(`Shield absorbed ${amount} damage.`);
+      // console.log(`Shield absorbed ${amount} damage.`); // Removed for optimization
     }
   }
 
@@ -282,49 +302,49 @@ export class Player {
   gainGold(amount: number) {
     this.gold += amount * this.goldMultiplier;
     this.soundManager.playSound('gold_collect');
-    console.log(`Player gained ${amount} gold. Total: ${this.gold}`);
+    // console.log(`Player gained ${amount} gold. Total: ${this.gold}`); // Removed for optimization
   }
 
   spendGold(amount: number): boolean {
     if (this.gold >= amount) {
       this.gold -= amount;
-      console.log(`Player spent ${amount} gold. Remaining: ${this.gold}`);
+      // console.log(`Player spent ${amount} gold. Remaining: ${this.gold}`); // Removed for optimization
       return true;
     }
-    console.log(`Not enough gold to spend ${amount}. Current: ${this.gold}`);
+    // console.log(`Not enough gold to spend ${amount}. Current: ${this.gold}`); // Removed for optimization
     return false;
   }
 
   increaseSpeed(amount: number) {
     this.speed += amount;
-    console.log(`Player speed increased to ${this.speed}`);
+    // console.log(`Player speed increased to ${this.speed}`); // Removed for optimization
   }
 
   increaseMaxHealth(amount: number) {
     this.maxHealth += amount;
     this.currentHealth = this.maxHealth;
-    console.log(`Player max health increased to ${this.maxHealth}`);
+    // console.log(`Player max health increased to ${this.maxHealth}`); // Removed for optimization
   }
 
   reduceDashCooldown(amount: number) {
     this.dashCooldown = Math.max(0.5, this.dashCooldown - amount);
     this.currentDashCooldown = Math.min(this.currentDashCooldown, this.dashCooldown);
-    console.log(`Dash cooldown reduced to ${this.dashCooldown} seconds`);
+    // console.log(`Dash cooldown reduced to ${this.dashCooldown} seconds`); // Removed for optimization
   }
 
   increaseMagnetRadius(amount: number) {
     this.baseMagnetRadius += amount;
-    console.log(`Player base magnet radius increased to ${this.baseMagnetRadius}`);
+    // console.log(`Player base magnet radius increased to ${this.baseMagnetRadius}`); // Removed for optimization
   }
 
   increaseExperienceGain(amount: number) {
     this.experienceMultiplier += amount;
-    console.log(`Player experience multiplier increased to ${this.experienceMultiplier}`);
+    // console.log(`Player experience multiplier increased to ${this.experienceMultiplier}`); // Removed for optimization
   }
 
   increaseGoldGain(amount: number) {
     this.goldMultiplier += amount;
-    console.log(`Player gold multiplier increased to ${this.goldMultiplier}`);
+    // console.log(`Player gold multiplier increased to ${this.goldMultiplier}`); // Removed for optimization
   }
 
   getDashCooldownCurrent(): number {
@@ -342,13 +362,4 @@ export class Player {
   getTimeSlowCooldownMax(): number {
     return this.timeSlowAbility?.getCooldownMax() || 0;
   }
-
-  // REMOVED: Getters for Laser Beam Weapon Cooldown as it's no longer a player ability
-  // getLaserBeamCooldownCurrent(): number {
-  //   return this.laserBeamWeapon?.getCooldownCurrent() || 0;
-  // }
-
-  // getLaserBeamCooldownMax(): number {
-  //   return this.laserBeamWeapon?.getCooldownMax() || 0;
-  // }
 }

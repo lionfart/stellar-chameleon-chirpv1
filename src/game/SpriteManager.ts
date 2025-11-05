@@ -69,23 +69,225 @@ export class SpriteManager {
     return canvas;
   }
 
-  // Updated SVG definitions for better sprites
-  static getPlayerSpriteSVG(size: number): string {
+  // --- Player Knight Sprites ---
+  static getPlayerIdleSpriteSVG(size: number): string {
     return `
       <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <radialGradient id="playerGradient" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
-            <stop offset="0%" stop-color="#8BC34A" />
-            <stop offset="100%" stop-color="#4CAF50" />
-          </radialGradient>
+          <linearGradient id="knightBody" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#A9A9A9" />
+            <stop offset="100%" stop-color="#696969" />
+          </linearGradient>
+          <linearGradient id="knightHelmet" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#C0C0C0" />
+            <stop offset="100%" stop-color="#808080" />
+          </linearGradient>
+          <linearGradient id="knightShield" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#4CAF50" />
+            <stop offset="100%" stop-color="#2E7D32" />
+          </linearGradient>
         </defs>
-        <circle cx="${size / 2}" cy="${size / 2}" r="${size / 2 - 2}" fill="url(#playerGradient)" stroke="#2E7D32" stroke-width="2"/>
-        <polygon points="${size / 2},${size * 0.2} ${size * 0.3},${size * 0.7} ${size * 0.7},${size * 0.7}" fill="#FFFFFF"/>
-        <rect x="${size * 0.4}" y="${size * 0.7}" width="${size * 0.2}" height="${size * 0.1}" fill="#FFEB3B"/>
+        <!-- Body -->
+        <rect x="${size * 0.3}" y="${size * 0.4}" width="${size * 0.4}" height="${size * 0.4}" rx="${size * 0.05}" ry="${size * 0.05}" fill="url(#knightBody)" stroke="#444" stroke-width="1"/>
+        <!-- Head -->
+        <circle cx="${size / 2}" cy="${size * 0.35}" r="${size * 0.15}" fill="url(#knightHelmet)" stroke="#444" stroke-width="1"/>
+        <!-- Plume -->
+        <path d="M${size * 0.55},${size * 0.2} Q${size * 0.65},${size * 0.1} ${size * 0.7},${size * 0.25} Q${size * 0.6},${size * 0.15} ${size * 0.55},${size * 0.2} Z" fill="#FFD700"/>
+        <!-- Visor slit -->
+        <rect x="${size * 0.45}" y="${size * 0.32}" width="${size * 0.1}" height="${size * 0.03}" fill="#333"/>
+        <!-- Legs (neutral) -->
+        <rect x="${size * 0.35}" y="${size * 0.8}" width="${size * 0.1}" height="${size * 0.2}" fill="url(#knightBody)" stroke="#444" stroke-width="1"/>
+        <rect x="${size * 0.55}" y="${size * 0.8}" width="${size * 0.1}" height="${size * 0.2}" fill="url(#knightBody)" stroke="#444" stroke-width="1"/>
+        <!-- Left Arm -->
+        <rect x="${size * 0.2}" y="${size * 0.45}" width="${size * 0.1}" height="${size * 0.3}" fill="url(#knightBody)" stroke="#444" stroke-width="1"/>
+        <!-- Right Arm -->
+        <rect x="${size * 0.7}" y="${size * 0.45}" width="${size * 0.1}" height="${size * 0.3}" fill="url(#knightBody)" stroke="#444" stroke-width="1"/>
+        <!-- Shield (left arm) -->
+        <rect x="${size * 0.15}" y="${size * 0.5}" width="${size * 0.15}" height="${size * 0.2}" rx="${size * 0.02}" ry="${size * 0.02}" fill="url(#knightShield)" stroke="#2E7D32" stroke-width="1"/>
+        <!-- Sword Hilt (right arm) -->
+        <rect x="${size * 0.75}" y="${size * 0.5}" width="${size * 0.05}" height="${size * 0.1}" fill="#8B4513"/>
+        <rect x="${size * 0.73}" y="${size * 0.53}" width="${size * 0.09}" height="${size * 0.04}" fill="#8B4513"/>
+        <!-- Sword Blade -->
+        <rect x="${size * 0.77}" y="${size * 0.4}" width="${size * 0.01}" height="${size * 0.1}" fill="#C0C0C0"/>
       </svg>
     `;
   }
 
+  static getPlayerWalk0SpriteSVG(size: number): string {
+    const legOffset = size * 0.03; // Smaller offset for subtle animation
+    return `
+      <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="knightBody" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#A9A9A9" />
+            <stop offset="100%" stop-color="#696969" />
+          </linearGradient>
+          <linearGradient id="knightHelmet" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#C0C0C0" />
+            <stop offset="100%" stop-color="#808080" />
+          </linearGradient>
+          <linearGradient id="knightShield" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#4CAF50" />
+            <stop offset="100%" stop-color="#2E7D32" />
+          </linearGradient>
+        </defs>
+        <!-- Body -->
+        <rect x="${size * 0.3}" y="${size * 0.4}" width="${size * 0.4}" height="${size * 0.4}" rx="${size * 0.05}" ry="${size * 0.05}" fill="url(#knightBody)" stroke="#444" stroke-width="1"/>
+        <!-- Head -->
+        <circle cx="${size / 2}" cy="${size * 0.35}" r="${size * 0.15}" fill="url(#knightHelmet)" stroke="#444" stroke-width="1"/>
+        <!-- Plume -->
+        <path d="M${size * 0.55},${size * 0.2} Q${size * 0.65},${size * 0.1} ${size * 0.7},${size * 0.25} Q${size * 0.6},${size * 0.15} ${size * 0.55},${size * 0.2} Z" fill="#FFD700"/>
+        <!-- Visor slit -->
+        <rect x="${size * 0.45}" y="${size * 0.32}" width="${size * 0.1}" height="${size * 0.03}" fill="#333"/>
+        <!-- Legs (left forward, right back) -->
+        <rect x="${size * 0.35 - legOffset}" y="${size * 0.8}" width="${size * 0.1}" height="${size * 0.2}" fill="url(#knightBody)" stroke="#444" stroke-width="1"/>
+        <rect x="${size * 0.55 + legOffset}" y="${size * 0.8}" width="${size * 0.1}" height="${size * 0.2}" fill="url(#knightBody)" stroke="#444" stroke-width="1"/>
+        <!-- Left Arm -->
+        <rect x="${size * 0.2}" y="${size * 0.45}" width="${size * 0.1}" height="${size * 0.3}" fill="url(#knightBody)" stroke="#444" stroke-width="1"/>
+        <!-- Right Arm -->
+        <rect x="${size * 0.7}" y="${size * 0.45}" width="${size * 0.1}" height="${size * 0.3}" fill="url(#knightBody)" stroke="#444" stroke-width="1"/>
+        <!-- Shield (left arm) -->
+        <rect x="${size * 0.15}" y="${size * 0.5}" width="${size * 0.15}" height="${size * 0.2}" rx="${size * 0.02}" ry="${size * 0.02}" fill="url(#knightShield)" stroke="#2E7D32" stroke-width="1"/>
+        <!-- Sword Hilt (right arm) -->
+        <rect x="${size * 0.75}" y="${size * 0.5}" width="${size * 0.05}" height="${size * 0.1}" fill="#8B4513"/>
+        <rect x="${size * 0.73}" y="${size * 0.53}" width="${size * 0.09}" height="${size * 0.04}" fill="#8B4513"/>
+        <!-- Sword Blade -->
+        <rect x="${size * 0.77}" y="${size * 0.4}" width="${size * 0.01}" height="${size * 0.1}" fill="#C0C0C0"/>
+      </svg>
+    `;
+  }
+
+  static getPlayerWalk1SpriteSVG(size: number): string {
+    return `
+      <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="knightBody" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#A9A9A9" />
+            <stop offset="100%" stop-color="#696969" />
+          </linearGradient>
+          <linearGradient id="knightHelmet" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#C0C0C0" />
+            <stop offset="100%" stop-color="#808080" />
+          </linearGradient>
+          <linearGradient id="knightShield" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#4CAF50" />
+            <stop offset="100%" stop-color="#2E7D32" />
+          </linearGradient>
+        </defs>
+        <!-- Body -->
+        <rect x="${size * 0.3}" y="${size * 0.4}" width="${size * 0.4}" height="${size * 0.4}" rx="${size * 0.05}" ry="${size * 0.05}" fill="url(#knightBody)" stroke="#444" stroke-width="1"/>
+        <!-- Head -->
+        <circle cx="${size / 2}" cy="${size * 0.35}" r="${size * 0.15}" fill="url(#knightHelmet)" stroke="#444" stroke-width="1"/>
+        <!-- Plume -->
+        <path d="M${size * 0.55},${size * 0.2} Q${size * 0.65},${size * 0.1} ${size * 0.7},${size * 0.25} Q${size * 0.6},${size * 0.15} ${size * 0.55},${size * 0.2} Z" fill="#FFD700"/>
+        <!-- Visor slit -->
+        <rect x="${size * 0.45}" y="${size * 0.32}" width="${size * 0.1}" height="${size * 0.03}" fill="#333"/>
+        <!-- Legs (neutral) -->
+        <rect x="${size * 0.35}" y="${size * 0.8}" width="${size * 0.1}" height="${size * 0.2}" fill="url(#knightBody)" stroke="#444" stroke-width="1"/>
+        <rect x="${size * 0.55}" y="${size * 0.8}" width="${size * 0.1}" height="${size * 0.2}" fill="url(#knightBody)" stroke="#444" stroke-width="1"/>
+        <!-- Left Arm -->
+        <rect x="${size * 0.2}" y="${size * 0.45}" width="${size * 0.1}" height="${size * 0.3}" fill="url(#knightBody)" stroke="#444" stroke-width="1"/>
+        <!-- Right Arm -->
+        <rect x="${size * 0.7}" y="${size * 0.45}" width="${size * 0.1}" height="${size * 0.3}" fill="url(#knightBody)" stroke="#444" stroke-width="1"/>
+        <!-- Shield (left arm) -->
+        <rect x="${size * 0.15}" y="${size * 0.5}" width="${size * 0.15}" height="${size * 0.2}" rx="${size * 0.02}" ry="${size * 0.02}" fill="url(#knightShield)" stroke="#2E7D32" stroke-width="1"/>
+        <!-- Sword Hilt (right arm) -->
+        <rect x="${size * 0.75}" y="${size * 0.5}" width="${size * 0.05}" height="${size * 0.1}" fill="#8B4513"/>
+        <rect x="${size * 0.73}" y="${size * 0.53}" width="${size * 0.09}" height="${size * 0.04}" fill="#8B4513"/>
+        <!-- Sword Blade -->
+        <rect x="${size * 0.77}" y="${size * 0.4}" width="${size * 0.01}" height="${size * 0.1}" fill="#C0C0C0"/>
+      </svg>
+    `;
+  }
+
+  static getPlayerWalk2SpriteSVG(size: number): string {
+    const legOffset = size * 0.03; // Smaller offset for subtle animation
+    return `
+      <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="knightBody" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#A9A9A9" />
+            <stop offset="100%" stop-color="#696969" />
+          </linearGradient>
+          <linearGradient id="knightHelmet" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#C0C0C0" />
+            <stop offset="100%" stop-color="#808080" />
+          </linearGradient>
+          <linearGradient id="knightShield" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#4CAF50" />
+            <stop offset="100%" stop-color="#2E7D32" />
+          </linearGradient>
+        </defs>
+        <!-- Body -->
+        <rect x="${size * 0.3}" y="${size * 0.4}" width="${size * 0.4}" height="${size * 0.4}" rx="${size * 0.05}" ry="${size * 0.05}" fill="url(#knightBody)" stroke="#444" stroke-width="1"/>
+        <!-- Head -->
+        <circle cx="${size / 2}" cy="${size * 0.35}" r="${size * 0.15}" fill="url(#knightHelmet)" stroke="#444" stroke-width="1"/>
+        <!-- Plume -->
+        <path d="M${size * 0.55},${size * 0.2} Q${size * 0.65},${size * 0.1} ${size * 0.7},${size * 0.25} Q${size * 0.6},${size * 0.15} ${size * 0.55},${size * 0.2} Z" fill="#FFD700"/>
+        <!-- Visor slit -->
+        <rect x="${size * 0.45}" y="${size * 0.32}" width="${size * 0.1}" height="${size * 0.03}" fill="#333"/>
+        <!-- Legs (right forward, left back) -->
+        <rect x="${size * 0.35 + legOffset}" y="${size * 0.8}" width="${size * 0.1}" height="${size * 0.2}" fill="url(#knightBody)" stroke="#444" stroke-width="1"/>
+        <rect x="${size * 0.55 - legOffset}" y="${size * 0.8}" width="${size * 0.1}" height="${size * 0.2}" fill="url(#knightBody)" stroke="#444" stroke-width="1"/>
+        <!-- Left Arm -->
+        <rect x="${size * 0.2}" y="${size * 0.45}" width="${size * 0.1}" height="${size * 0.3}" fill="url(#knightBody)" stroke="#444" stroke-width="1"/>
+        <!-- Right Arm -->
+        <rect x="${size * 0.7}" y="${size * 0.45}" width="${size * 0.1}" height="${size * 0.3}" fill="url(#knightBody)" stroke="#444" stroke-width="1"/>
+        <!-- Shield (left arm) -->
+        <rect x="${size * 0.15}" y="${size * 0.5}" width="${size * 0.15}" height="${size * 0.2}" rx="${size * 0.02}" ry="${size * 0.02}" fill="url(#knightShield)" stroke="#2E7D32" stroke-width="1"/>
+        <!-- Sword Hilt (right arm) -->
+        <rect x="${size * 0.75}" y="${size * 0.5}" width="${size * 0.05}" height="${size * 0.1}" fill="#8B4513"/>
+        <rect x="${size * 0.73}" y="${size * 0.53}" width="${size * 0.09}" height="${size * 0.04}" fill="#8B4513"/>
+        <!-- Sword Blade -->
+        <rect x="${size * 0.77}" y="${size * 0.4}" width="${size * 0.01}" height="${size * 0.1}" fill="#C0C0C0"/>
+      </svg>
+    `;
+  }
+
+  static getPlayerWalk3SpriteSVG(size: number): string {
+    return `
+      <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="knightBody" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#A9A9A9" />
+            <stop offset="100%" stop-color="#696969" />
+          </linearGradient>
+          <linearGradient id="knightHelmet" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#C0C0C0" />
+            <stop offset="100%" stop-color="#808080" />
+          </linearGradient>
+          <linearGradient id="knightShield" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#4CAF50" />
+            <stop offset="100%" stop-color="#2E7D32" />
+          </linearGradient>
+        </defs>
+        <!-- Body -->
+        <rect x="${size * 0.3}" y="${size * 0.4}" width="${size * 0.4}" height="${size * 0.4}" rx="${size * 0.05}" ry="${size * 0.05}" fill="url(#knightBody)" stroke="#444" stroke-width="1"/>
+        <!-- Head -->
+        <circle cx="${size / 2}" cy="${size * 0.35}" r="${size * 0.15}" fill="url(#knightHelmet)" stroke="#444" stroke-width="1"/>
+        <!-- Plume -->
+        <path d="M${size * 0.55},${size * 0.2} Q${size * 0.65},${size * 0.1} ${size * 0.7},${size * 0.25} Q${size * 0.6},${size * 0.15} ${size * 0.55},${size * 0.2} Z" fill="#FFD700"/>
+        <!-- Visor slit -->
+        <rect x="${size * 0.45}" y="${size * 0.32}" width="${size * 0.1}" height="${size * 0.03}" fill="#333"/>
+        <!-- Legs (neutral) -->
+        <rect x="${size * 0.35}" y="${size * 0.8}" width="${size * 0.1}" height="${size * 0.2}" fill="url(#knightBody)" stroke="#444" stroke-width="1"/>
+        <rect x="${size * 0.55}" y="${size * 0.8}" width="${size * 0.1}" height="${size * 0.2}" fill="url(#knightBody)" stroke="#444" stroke-width="1"/>
+        <!-- Left Arm -->
+        <rect x="${size * 0.2}" y="${size * 0.45}" width="${size * 0.1}" height="${size * 0.3}" fill="url(#knightBody)" stroke="#444" stroke-width="1"/>
+        <!-- Right Arm -->
+        <rect x="${size * 0.7}" y="${size * 0.45}" width="${size * 0.1}" height="${size * 0.3}" fill="url(#knightBody)" stroke="#444" stroke-width="1"/>
+        <!-- Shield (left arm) -->
+        <rect x="${size * 0.15}" y="${size * 0.5}" width="${size * 0.15}" height="${size * 0.2}" rx="${size * 0.02}" ry="${size * 0.02}" fill="url(#knightShield)" stroke="#2E7D32" stroke-width="1"/>
+        <!-- Sword Hilt (right arm) -->
+        <rect x="${size * 0.75}" y="${size * 0.5}" width="${size * 0.05}" height="${size * 0.1}" fill="#8B4513"/>
+        <rect x="${size * 0.73}" y="${size * 0.53}" width="${size * 0.09}" height="${size * 0.04}" fill="#8B4513"/>
+        <!-- Sword Blade -->
+        <rect x="${size * 0.77}" y="${size * 0.4}" width="${size * 0.01}" height="${size * 0.1}" fill="#C0C0C0"/>
+      </svg>
+    `;
+  }
+
+  // --- Other Sprites (unchanged) ---
   static getEnemyNormalSpriteSVG(size: number): string {
     return `
       <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
